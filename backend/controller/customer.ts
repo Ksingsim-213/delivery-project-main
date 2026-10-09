@@ -129,8 +129,10 @@ router.get("/search", async (req, res) => {
       return res.status(400).json({ error: "กรุณาระบุคำค้นหา (q)" });
     }
 
-    const sql = "SELECT * FROM customers WHERE name LIKE ?";
-    const [rows] = await conn.query(sql, [`%${keyword}%`]);
+    // ปรับให้ใช้งานกับ schema ปัจจุบันที่มีแค่ field name เป็นชื่อเต็ม
+    const sql = "SELECT * FROM customers WHERE name LIKE ? OR name LIKE ?";
+    const searchValue = `%${keyword}%`;
+    const [rows] = await conn.query(sql, [searchValue, searchValue]);
     res.status(200).json(rows);
   } catch (error) {
     console.error("Search Error:", error);

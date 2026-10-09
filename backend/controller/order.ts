@@ -128,6 +128,44 @@ router.post("/", async (req, res) => {
   }
 });
 
+// 3.1 API จำลองข้อมูลออเดอร์ 20-30 รายการ โดยไม่ต้องแก้ schema (ใช้ข้อมูลลูกค้าที่มีอยู่)
+router.post("/mock", async (req, res) => {
+  try {
+    const [customerRows] = await conn.query("SELECT id FROM customers ORDER BY id ASC");
+    const customers = customerRows as { id: number }[];
+
+    if (!customers || customers.length === 0) {
+      return res.status(400).json({
+        error: "ยังไม่มีข้อมูลลูกค้าในฐานข้อมูล ต้องสร้างลูกค้าให้เรียบร้อยก่อนจึงจะ mock ออเดอร์ได้",
+      });
+    }
+
+    const mockOrders = Array.from({ length: 20 }, (_, index) => {
+      const customer = customers[(index % customers.length)]!;
+      return {
+        customer_id: customer.id,
+        quantity: (index % 3) + 1,
+        status: ["pending", "processing", "done"][index % 3],
+      };
+    });
+
+    const placeholders = mockOrders.map(() => "(?, ?, ?)").join(", ");
+    const sql = `INSERT INTO \`orders\` (\`customer_id\`, \`quantity\`, \`status\`) VALUES ${placeholders}`;
+    const values = mockOrders.flatMap((item) => [item.customer_id, item.quantity, item.status]);
+
+    const [result] = await conn.query(sql, values);
+    const insertResult = result as any;
+
+    return res.status(201).json({
+      message: `สร้างข้อมูลออเดอร์จำลองสำเร็จ ${insertResult.affectedRows} รายการ (ไม่มีการเปลี่ยน schema)`,
+      total: insertResult.affectedRows,
+    });
+  } catch (error) {
+    console.error("Mock Order Error:", error);
+    res.status(500).json({ error: "สร้างข้อมูลออเดอร์จำลองไม่สำเร็จ" });
+  }
+});
+
 // 4. API ล้าง (ลบทั้งหมด) รายการสั่งซื้อ (DELETE /clear-all)
 // *** สำคัญ: ต้องวางไว้ก่อน DELETE /:id เสมอ เพื่อไม่ให้ถูกมองว่า 'clear-all' คือ :id ***
 router.delete("/clear-all", async (req, res) => {
