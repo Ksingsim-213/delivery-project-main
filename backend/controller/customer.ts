@@ -20,27 +20,46 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 2. API เพิ่มข้อมูลลูกค้าใหม่ (POST)
+// 2. API เพิ่มข้อมูลลูกค้าใหม่ (POST รองรับทั้ง object เดียว และ array)
 router.post("/", async (req, res) => {
   try {
-    // รับข้อมูลจากที่ Angular (หรือ Bruno) ส่งมา
-    let customer: Customer = req.body; 
-    
-    let sql = "INSERT INTO `customers`(`name`, `phone`, `lat`, `lng`) VALUES (?,?,?,?)";
+    const data = req.body;
+
+    // กรณีส่งมาเป็น Array หลายคนพร้อมกัน
+    if (Array.isArray(data)) {
+      if (data.length === 0) {
+        return res.status(400).json({ error: "กรุณาส่งข้อมูลลูกค้าอย่างน้อย 1 รายการ" });
+      }
+
+      // สร้าง Query SQL แบบไดนามิก (?,?,?,?), (?,?,?,?)...
+      const placeholders = data.map(() => "(?, ?, ?, ?)").join(", ");
+      const sql = `INSERT INTO \`customers\` (\`name\`, \`phone\`, \`lat\`, \`lng\`) VALUES ${placeholders}`;
       
+      // ดึงค่าของทุกคนมารวมเป็น Array 1 มิติ
+      const values = data.flatMap((c: Customer) => [c.name, c.phone, c.lat, c.lng]);
+
+      const [result] = await conn.query(sql, values);
+      const insertResult = result as any;
+
+      return res.status(201).json({
+        message: `เพิ่มลูกค้าใหม่สำเร็จ ${insertResult.affectedRows} คน!`,
+      });
+    }
+
+    // กรณีส่งมาเป็น Object คนเดียว
+    let customer: Customer = data;
+    let sql = "INSERT INTO `customers` (`name`, `phone`, `lat`, `lng`) VALUES (?,?,?,?)";
     const [result] = await conn.query(sql, [
       customer.name,
       customer.phone,
       customer.lat,
       customer.lng
     ]);
-    
+
     const insertResult = result as any;
-    
-    // ตอบกลับไปว่าสร้างสำเร็จ (201 Created) พร้อมส่ง ID ใหม่กลับไป
     res.status(201).json({
       message: "เพิ่มลูกค้าใหม่เรียบร้อยแล้ว!",
-      customer_id: insertResult.insertId 
+      customer_id: insertResult.insertId
     });
   } catch (error) {
     console.error("Insert Error:", error);
