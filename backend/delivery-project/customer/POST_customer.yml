@@ -1,0 +1,24 @@
+info:
+  name: POST_customer
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:3000/customer
+  body:
+    type: json
+    data: |-
+      {
+        "name": "นายโอ สมมติ",
+        "phone": "0812345667",
+        "lat": 16.245,
+        "lng": 103.250
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

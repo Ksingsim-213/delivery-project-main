@@ -1,0 +1,21 @@
+info:
+  name: PUT_customer
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: http://localhost:3000/customer/1
+  body:
+    type: json
+    data: |-
+      {
+        "phone": "0812345697"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
