@@ -1,0 +1,18 @@
+info:
+  name: SEARCH_customer
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/customer/search?q=นาย
+  params:
+    - name: q
+      value: นาย
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

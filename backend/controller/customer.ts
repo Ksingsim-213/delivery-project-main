@@ -48,7 +48,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ลบ router.put อันเก่าออก แล้วเอาอันนี้ไปวางแทนนะครับ
+// 3. API อัปเดตข้อมูลลูกค้า (PUT)
 router.put("/:id", async (req, res) => {
   try {
     let id = req.params.id; // รับ ID
@@ -100,5 +100,53 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error("Delete Error:", error);
     res.status(500).json({ error: "ลบข้อมูลไม่สำเร็จ" });
+  }
+});
+
+router.get("/search", async (req, res) => {
+  try {
+    const keyword = req.query.q as string;
+    if (!keyword) {
+      return res.status(400).json({ error: "กรุณาระบุคำค้นหา (q)" });
+    }
+
+    const sql = "SELECT * FROM customers WHERE name LIKE ?";
+    const [rows] = await conn.query(sql, [`%${keyword}%`]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Search Error:", error);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการค้นหา" });
+  }
+});
+
+// 2.3 ค้นหาลูกค้าทั้งหมดในระยะที่กำหนด ( default 1 กม.) จากพิกัด lat, lng (GET /nearby?lat=...&lng=...&distance=1)
+router.get("/nearby", async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat as string);
+    const lng = parseFloat(req.query.lng as string);
+    const distance = parseFloat((req.query.distance as string) || "1"); // ถ้าไม่ระบุ จะใช้ 1 km ตามโจทย์
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: "กรุณาระบุ lat และ lng ให้ถูกต้อง" });
+    }
+
+    // สูตร Haversine สำหรับคำนวณระยะทางบนพื้นผิวโลก (กิโลเมตร)
+    const sql = `
+      SELECT *, 
+        (6371 * acos(
+          cos(radians(?)) * cos(radians(lat)) * 
+          cos(radians(lng) - radians(?)) + 
+          sin(radians(?)) * sin(radians(lat))
+        )) AS distance
+      FROM customers
+      HAVING distance <= ?
+      ORDER BY distance ASC
+    `;
+
+    const [rows] = await conn.query(sql, [lat, lng, lat, distance]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Nearby Search Error:", error);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการค้นหาตามพิกัด" });
   }
 });
