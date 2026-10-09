@@ -1,0 +1,22 @@
+info:
+  name: PUT_order
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: http://localhost:3000/order/1
+  body:
+    type: json
+    data: |-
+      {
+        "quantity": 3,
+        "status": "completed"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

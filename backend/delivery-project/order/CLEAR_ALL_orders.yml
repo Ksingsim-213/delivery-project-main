@@ -1,0 +1,14 @@
+info:
+  name: CLEAR_ALL_orders
+  type: http
+
+http:
+  method: DELETE
+  url: http://localhost:3000/order/clear-all
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

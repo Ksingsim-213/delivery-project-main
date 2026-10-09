@@ -4,35 +4,113 @@ import { Order } from "../model/order";
 
 export const router = express.Router();
 
-// 1. API ดึงข้อมูลออเดอร์ทั้งหมด (GET)
+// 1. API ดึงข้อมูลออเดอร์ทั้งหมด พร้อมข้อมูลลูกค้า (GET /)
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await conn.query("SELECT * FROM orders");
-    let orders = rows as Order[];
-    res.status(200).json(orders);
+    const sql = `
+      SELECT 
+        orders.id AS order_id,
+        orders.quantity,
+        orders.status,
+        customers.id AS customer_id,
+        customers.name AS customer_name,
+        customers.phone AS customer_phone,
+        customers.lat,
+        customers.lng
+      FROM orders
+      JOIN customers ON orders.customer_id = customers.id
+    `;
+    const [rows] = await conn.query(sql);
+    res.status(200).json(rows);
   } catch (error) {
     console.error("Database Error:", error); 
     if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     } else {
-        res.status(500).json({ error: "เกิดข้อผิดพลาดที่ไม่รู้จัก" });
+      res.status(500).json({ error: "เกิดข้อผิดพลาดที่ไม่รู้จัก" });
     }
   }
 });
 
-// 2. API สร้างออเดอร์ใหม่ (POST)
+// 2. API แสดงรายการสั่งซื้อทั้งหมดในระยะที่กำหนด (GET /nearby)
+// *** สำคัญ: ต้องวางไว้ก่อน /:id เสมอ ***
+router.get("/nearby", async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat as string);
+    const lng = parseFloat(req.query.lng as string);
+    const distance = parseFloat((req.query.distance as string) || "2"); // 2 กม. ตามโจทย์
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: "กรุณาระบุ lat และ lng ให้ถูกต้อง" });
+    }
+
+    const sql = `
+      SELECT 
+        orders.id AS order_id,
+        orders.quantity,
+        orders.status,
+        customers.id AS customer_id,
+        customers.name AS customer_name,
+        customers.phone AS customer_phone,
+        customers.lat,
+        customers.lng,
+        (6371 * acos(
+          cos(radians(?)) * cos(radians(customers.lat)) * 
+          cos(radians(customers.lng) - radians(?)) + 
+          sin(radians(?)) * sin(radians(customers.lat))
+        )) AS distance
+      FROM orders
+      JOIN customers ON orders.customer_id = customers.id
+      HAVING distance <= ?
+      ORDER BY distance ASC
+    `;
+
+    const [rows] = await conn.query(sql, [lat, lng, lat, distance]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Nearby Orders Error:", error);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการค้นหาออเดอร์ตามระยะทาง" });
+  }
+});
+
+// 3. API สร้างออเดอร์ใหม่ (POST /) - รองรับทั้ง 1 รายการ และ หลายรายการ (Array)
 router.post("/", async (req, res) => {
   try {
-    let order: Order = req.body; 
+    const data = req.body;
+
+    // กรณีส่งมาเป็น Array (หลายรายการ)
+    if (Array.isArray(data)) {
+      if (data.length === 0) {
+        return res.status(400).json({ error: "กรุณาส่งข้อมูลออเดอร์อย่างน้อย 1 รายการ" });
+      }
+
+      // ตรวจสอบเงื่อนไขจำนวนกล่อง (ไม่เกิน 3 กล่องต่อออเดอร์)
+      const isInvalidQuantity = data.some((item: Order) => item.quantity > 3);
+      if (isInvalidQuantity) {
+        return res.status(400).json({ error: "มีรายการที่สั่งซื้อเกิน 3 กล่อง (จำกัดไม่เกิน 3 กล่องต่อรายการ)" });
+      }
+
+      // สร้าง SQL Insert แบบหลายรายการ
+      const placeholders = data.map(() => "(?, ?)").join(", ");
+      const sql = `INSERT INTO \`orders\` (\`customer_id\`, \`quantity\`) VALUES ${placeholders}`;
+      const values = data.flatMap((o: Order) => [o.customer_id, o.quantity]);
+
+      const [result] = await conn.query(sql, values);
+      const insertResult = result as any;
+
+      return res.status(201).json({
+        message: `เพิ่มรายการสั่งซื้อสำเร็จ ${insertResult.affectedRows} รายการ!`,
+      });
+    }
+
+    // กรณีส่งมาเป็น Object (1 รายการ)
+    let order: Order = data; 
     
-    // ดักจับเงื่อนไขตามโจทย์: ลูกค้าสั่งได้ไม่เกิน 3 กล่อง
     if (order.quantity > 3) {
-        return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
+      return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
     }
     
-    // status ค่าเริ่มต้นเป็น 'pending' อยู่แล้วตามโครงสร้างตาราง
     let sql = "INSERT INTO `orders`(`customer_id`, `quantity`) VALUES (?,?)";
-      
     const [result] = await conn.query(sql, [
       order.customer_id,
       order.quantity
@@ -50,32 +128,50 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 3. API แก้ไขออเดอร์ (PUT) - เผื่อลูกค้าขอเปลี่ยนจำนวนกล่อง
+// 4. API ล้าง (ลบทั้งหมด) รายการสั่งซื้อ (DELETE /clear-all)
+// *** สำคัญ: ต้องวางไว้ก่อน DELETE /:id เสมอ เพื่อไม่ให้ถูกมองว่า 'clear-all' คือ :id ***
+router.delete("/clear-all", async (req, res) => {
+  try {
+    // ลบข้อมูลทั้งหมด และรีเซ็ตตัวนับ Auto Increment
+    await conn.query("DELETE FROM orders");
+    await conn.query("ALTER TABLE orders AUTO_INCREMENT = 1");
+
+    res.status(200).json({
+      message: "ล้างรายการสั่งซื้อทั้งหมด และรีเซ็ต ID เริ่มต้นที่ 1 เรียบร้อยแล้ว!",
+    });
+  } catch (error) {
+    console.error("Clear Orders Error:", error);
+    res.status(500).json({ error: "ล้างรายการสั่งซื้อไม่สำเร็จ" });
+  }
+});
+
+// 5. API แก้ไขออเดอร์ (PUT /:id) - แก้ไขจำนวนกล่อง
 router.put("/:id", async (req, res) => {
   try {
     let id = req.params.id;
     let newOrderData: Partial<Order> = req.body;
     
-    // เช็คว่าจำนวนกล่องที่แก้เกิน 3 ไหม
     if (newOrderData.quantity && newOrderData.quantity > 3) {
-         return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
+      return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
     }
     
-    // ดึงข้อมูลเก่า
     const [rows] = await conn.query("SELECT * FROM orders WHERE id = ?", [id]);
     const result = rows as Order[];
 
-    if (result.length === 0) {
+    if (!result || result.length === 0) {
       return res.status(404).json({ error: "ไม่พบออเดอร์นี้" });
     }
 
-    // รวมข้อมูล
-    let originalOrder = result[0];
-    let updatedOrder = { ...originalOrder, ...newOrderData };
+    // ใส่เครื่องหมาย ! เพื่อยืนยันกับ TypeScript ว่ามีข้อมูลแน่นอน
+    let originalOrder = result[0]!;
+    let updatedOrder = {
+      customer_id: newOrderData.customer_id ?? originalOrder.customer_id,
+      quantity: newOrderData.quantity ?? originalOrder.quantity,
+      status: newOrderData.status ?? originalOrder.status
+    };
 
-    // อัปเดตลงฐานข้อมูล
     let sql = "UPDATE `orders` SET `customer_id`=?, `quantity`=?, `status`=? WHERE `id`=?";
-    const [updateRows] = await conn.query(sql, [
+    await conn.query(sql, [
       updatedOrder.customer_id,
       updatedOrder.quantity,
       updatedOrder.status,
@@ -90,7 +186,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// 4. API ลบออเดอร์ (DELETE) - เผื่อลูกค้าแคนเซิล
+// 6. API ลบออเดอร์แบบรายตัว (DELETE /:id)
 router.delete("/:id", async (req, res) => {
   try {
     let id = req.params.id;

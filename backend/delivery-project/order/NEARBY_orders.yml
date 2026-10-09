@@ -1,0 +1,24 @@
+info:
+  name: NEARBY_orders
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/order/nearby?lat=16.245&lng=103.250&distance=2
+  params:
+    - name: lat
+      value: "16.245"
+      type: query
+    - name: lng
+      value: "103.250"
+      type: query
+    - name: distance
+      value: "2"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
