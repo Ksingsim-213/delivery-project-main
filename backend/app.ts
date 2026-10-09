@@ -25,3 +25,5 @@ app.use("/", index);
 app.use("/customer", customer);
 app.use("/order", order);
 app.use("/route", route);
+
+export default app;
