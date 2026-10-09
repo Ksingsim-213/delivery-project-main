@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: https://delivery-project-main.vercel.app/order/1
+  url: "{{baseUrl}}/order/1"
   auth: inherit
 
 settings:

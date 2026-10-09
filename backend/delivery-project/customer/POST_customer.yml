@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: https://delivery-project-main.vercel.app/customer
+  url: "{{baseUrl}}/customer"
   body:
     type: json
     data: |-
