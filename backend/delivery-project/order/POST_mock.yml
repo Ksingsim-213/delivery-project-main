@@ -1,11 +1,11 @@
 info:
-  name: CLEAR_ALL_orders
+  name: POST_mock
   type: http
   seq: 1
 
 http:
-  method: DELETE
-  url: https://delivery-project-main.vercel.app/order/clear-all
+  method: POST
+  url: https://delivery-project-main.vercel.app/order/mock
   auth: inherit
 
 settings:

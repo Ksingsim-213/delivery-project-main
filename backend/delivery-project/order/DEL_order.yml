@@ -1,10 +1,11 @@
 info:
   name: DEL_order
   type: http
+  seq: 1
 
 http:
   method: DELETE
-  url: http://localhost:3000/order/1
+  url: https://delivery-project-main.vercel.app/order/1
   auth: inherit
 
 settings:

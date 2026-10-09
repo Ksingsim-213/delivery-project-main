@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/customer/1
+  url: https://delivery-project-main.vercel.app/customer/1
   body:
     type: json
     data: |-

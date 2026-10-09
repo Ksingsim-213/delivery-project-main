@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:5000/customer/nearby?lat=16.245&lng=103.250&distance=1
+  url: https://delivery-project-main.vercel.app/customer/nearby?lat=16.245&lng=103.250&distance=1
   params:
     - name: lat
       value: "16.245"

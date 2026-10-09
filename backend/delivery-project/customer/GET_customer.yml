@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/customer
+  url: https://delivery-project-main.vercel.app/customer
   auth: inherit
 
 settings:

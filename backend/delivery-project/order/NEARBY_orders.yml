@@ -1,10 +1,11 @@
 info:
   name: NEARBY_orders
   type: http
+  seq: 1
 
 http:
   method: GET
-  url: http://localhost:3000/order/nearby?lat=16.245&lng=103.250&distance=2
+  url: https://delivery-project-main.vercel.app/order/nearby?lat=16.245&lng=103.250&distance=2
   params:
     - name: lat
       value: "16.245"
