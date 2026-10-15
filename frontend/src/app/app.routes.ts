@@ -21,8 +21,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/orders/orders').then((page) => page.Orders),
   },
   {
-    path: 'routes',
-    loadComponent: () => import('./pages/routes/routes').then((page) => page.Routes),
+    path: 'riders',
+    loadComponent: () => import('./pages/riders/riders').then((page) => page.Riders),
   },
   {
     path: '**',

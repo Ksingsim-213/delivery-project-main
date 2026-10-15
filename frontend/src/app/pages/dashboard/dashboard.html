@@ -1,5 +1,53 @@
-<section>
-  <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">ภาพรวม</p>
-  <h1 class="mt-2 text-2xl font-bold">แดชบอร์ด</h1>
-  <p class="mt-2 text-slate-600">พื้นที่สำหรับสรุปข้อมูลการจัดส่ง</p>
-</section>
+<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
+  <header class="flex items-end justify-between border-b border-base-300 pb-4">
+    <div>
+      <h2 class="text-2xl font-bold">ภาพรวมวันนี้</h2>
+      <p class="mt-1 text-sm opacity-60">สรุปออเดอร์และตำแหน่งลูกค้า</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="refresh()" [disabled]="loading">
+      <span class="loading loading-spinner loading-sm" *ngIf="loading"></span>
+      {{ loading ? 'กำลังโหลด...' : 'รีเฟรช' }}
+    </button>
+  </header>
+
+  <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
+
+  <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+    <div class="stat">
+      <div class="stat-title">ออเดอร์</div>
+      <div class="stat-value">{{ orders.length }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-title">ข้าวกล่องรวม</div>
+      <div class="stat-value">{{ totalBoxes }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-title">ไรเดอร์ขั้นต่ำ</div>
+      <div class="stat-value text-primary">{{ minRiders }}</div>
+      <div class="stat-desc">คันละ {{ capacity }} กล่อง</div>
+    </div>
+    <div class="stat">
+      <div class="stat-title">ลูกค้าทั้งหมด</div>
+      <div class="stat-value">{{ customerCount }}</div>
+    </div>
+  </div>
+
+  <div class="grid items-start gap-5 lg:grid-cols-[1fr_320px]">
+    <div>
+      <div #mapEl class="rounded-box relative z-0 h-[380px] border border-base-300 lg:h-[520px]"></div>
+      <p class="mt-2 text-sm opacity-60">ตัวเลขบนหมุดคือจำนวนกล่อง</p>
+    </div>
+    <div class="card card-border bg-base-100">
+      <div class="card-body gap-1">
+        <h3 class="card-title">ออเดอร์ล่าสุด</h3>
+        <ul class="list">
+          <li class="list-row items-center" *ngFor="let o of latest">
+            <div class="list-col-grow">{{ o.name }}</div>
+            <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
+          </li>
+        </ul>
+        <p class="py-4 text-center opacity-50" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
+      </div>
+    </div>
+  </div>
+</div>

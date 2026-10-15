@@ -1,5 +1,62 @@
-<section>
-  <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">จัดการข้อมูล</p>
-  <h1 class="mt-2 text-2xl font-bold">ลูกค้า</h1>
-  <p class="mt-2 text-slate-600">พื้นที่สำหรับรายการและข้อมูลลูกค้า</p>
-</section>
+<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
+  <header class="flex items-end justify-between border-b border-base-300 pb-4">
+    <div>
+      <h2 class="text-2xl font-bold">ลูกค้า</h2>
+      <p class="mt-1 text-sm opacity-60">ทั้งหมด {{ customers.length }} ราย</p>
+    </div>
+  </header>
+
+  <div class="grid items-start gap-5 lg:grid-cols-[360px_1fr]">
+    <div class="flex flex-col gap-4">
+      <div class="card card-border bg-base-100">
+        <div class="card-body gap-1">
+          <h3 class="card-title">{{ editId === null ? 'เพิ่มลูกค้าใหม่' : 'แก้ไขข้อมูลลูกค้า' }}</h3>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">ชื่อลูกค้า</legend>
+            <input id="cname" class="input w-full" [(ngModel)]="name" name="name" />
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">เบอร์โทร</legend>
+            <input id="cphone" class="input w-full" [(ngModel)]="phone" name="phone" inputmode="tel" maxlength="10" placeholder="0812345678" />
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">พิกัดบ้าน (ละติจูด, ลองจิจูด)</legend>
+            <div class="join w-full">
+              <input id="cpos" class="input join-item w-full" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
+              <button type="button" class="btn btn-primary btn-soft join-item" (click)="pickOnMap()">ปักบนแผนที่</button>
+            </div>
+          </fieldset>
+
+          <div *ngIf="error" role="alert" class="alert alert-soft text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
+          <button type="button" class="btn btn-primary mt-2 w-full" (click)="save()">บันทึก</button>
+          <button type="button" class="btn btn-ghost w-full" *ngIf="editId !== null" (click)="reset()">ยกเลิกการแก้ไข</button>
+        </div>
+      </div>
+
+      <div class="card card-border bg-base-100">
+        <div class="card-body gap-2">
+          <h3 class="card-title">รายชื่อลูกค้า</h3>
+          <input class="input w-full" [(ngModel)]="keyword" name="keyword" placeholder="ค้นหาชื่อหรือเบอร์โทร" aria-label="ค้นหาลูกค้า" />
+          <ul class="list">
+            <li class="list-row items-center" *ngFor="let c of shown">
+              <div class="list-col-grow">
+                <div>{{ c.name }}</div>
+                <div class="text-xs opacity-60">{{ c.phone }}</div>
+              </div>
+              <button type="button" class="btn btn-soft btn-sm" (click)="edit(c)">แก้ไข</button>
+            </li>
+          </ul>
+          <p class="py-4 text-center opacity-50" *ngIf="shown.length === 0">ไม่พบลูกค้า</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div #mapEl class="rounded-box relative z-0 h-95 border border-base-300 lg:h-135"></div>
+      <p class="mt-2 text-sm opacity-60">จุดส้มคือบ้านลูกค้าแต่ละราย กด "แก้ไข" เพื่อดูตำแหน่งบนแผนที่</p>
+    </div>
+  </div>
+</div>
