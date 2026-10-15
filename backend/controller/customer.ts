@@ -1,8 +1,38 @@
 import express from "express";
 import { conn } from "../dbconnect"; 
 import { Customer } from "../model/customer"; 
+import {
+  isLatitude,
+  isLongitude,
+  isNonEmptyString,
+  isRecord,
+  parseFiniteQueryNumber,
+} from "./validation";
 
 export const router = express.Router();
+
+type CustomerInput = Pick<Customer, "name" | "phone" | "lat" | "lng">;
+type CustomerUpdate = Partial<CustomerInput>;
+
+const isCustomerInput = (value: unknown): value is CustomerInput =>
+  isRecord(value) &&
+  isNonEmptyString(value.name) &&
+  isNonEmptyString(value.phone) &&
+  isLatitude(value.lat) &&
+  isLongitude(value.lng);
+
+const isCustomerUpdate = (value: unknown): value is CustomerUpdate => {
+  const allowedFields = ["name", "phone", "lat", "lng"];
+  return (
+    isRecord(value) &&
+    Object.keys(value).length > 0 &&
+    Object.keys(value).every((field) => allowedFields.includes(field)) &&
+    (!("name" in value) || isNonEmptyString(value.name)) &&
+    (!("phone" in value) || isNonEmptyString(value.phone)) &&
+    (!("lat" in value) || isLatitude(value.lat)) &&
+    (!("lng" in value) || isLongitude(value.lng))
+  );
+};
 
 // 1. API ดึงรายชื่อลูกค้าทั้งหมด (GET)
 router.get("/", async (req, res) => {
@@ -31,12 +61,19 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ error: "กรุณาส่งข้อมูลลูกค้าอย่างน้อย 1 รายการ" });
       }
 
+      const customers = data.filter(isCustomerInput);
+      if (customers.length !== data.length) {
+        return res.status(400).json({
+          error: "ข้อมูลลูกค้าแต่ละรายการต้องมี name, phone, lat และ lng ที่ถูกต้อง",
+        });
+      }
+
       // สร้าง Query SQL แบบไดนามิก (?,?,?,?), (?,?,?,?)...
       const placeholders = data.map(() => "(?, ?, ?, ?)").join(", ");
       const sql = `INSERT INTO \`customers\` (\`name\`, \`phone\`, \`lat\`, \`lng\`) VALUES ${placeholders}`;
       
       // ดึงค่าของทุกคนมารวมเป็น Array 1 มิติ
-      const values = data.flatMap((c: Customer) => [c.name, c.phone, c.lat, c.lng]);
+      const values = customers.flatMap((c) => [c.name, c.phone, c.lat, c.lng]);
 
       const [result] = await conn.query(sql, values);
       const insertResult = result as any;
@@ -47,7 +84,13 @@ router.post("/", async (req, res) => {
     }
 
     // กรณีส่งมาเป็น Object คนเดียว
-    let customer: Customer = data;
+    if (!isCustomerInput(data)) {
+      return res.status(400).json({
+        error: "ต้องระบุ name, phone, lat และ lng ให้ถูกต้อง",
+      });
+    }
+
+    const customer = data;
     let sql = "INSERT INTO `customers` (`name`, `phone`, `lat`, `lng`) VALUES (?,?,?,?)";
     const [result] = await conn.query(sql, [
       customer.name,
@@ -71,7 +114,16 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     let id = req.params.id; // รับ ID
-    let newCustomerData: Partial<Customer> = req.body; // Partial หมายถึง "รับมาแค่บางส่วนก็ได้"
+    const customerId = Number(id);
+    const newCustomerData: unknown = req.body;
+
+    if (!Number.isInteger(customerId) || customerId <= 0) {
+      return res.status(400).json({ error: "รหัสลูกค้าต้องเป็นจำนวนเต็มบวก" });
+    }
+
+    if (!isCustomerUpdate(newCustomerData)) {
+      return res.status(400).json({ error: "ข้อมูลลูกค้าที่ส่งมาไม่ถูกต้อง" });
+    }
     
     // 1. ไปดึงข้อมูลลูกค้า "คนเดิม" มาจากฐานข้อมูลก่อน
     const [rows] = await conn.query("SELECT * FROM customers WHERE id = ?", [id]);
@@ -143,21 +195,35 @@ router.get("/search", async (req, res) => {
 // 2.3 ค้นหาลูกค้าทั้งหมดในระยะที่กำหนด ( default 1 กม.) จากพิกัด lat, lng (GET /nearby?lat=...&lng=...&distance=1)
 router.get("/nearby", async (req, res) => {
   try {
-    const lat = parseFloat(req.query.lat as string);
-    const lng = parseFloat(req.query.lng as string);
-    const distance = parseFloat((req.query.distance as string) || "1"); // ถ้าไม่ระบุ จะใช้ 1 km ตามโจทย์
+    const lat = parseFiniteQueryNumber(req.query.lat);
+    const lng = parseFiniteQueryNumber(req.query.lng);
+    const distance =
+      req.query.distance === undefined
+        ? 1
+        : parseFiniteQueryNumber(req.query.distance);
 
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ error: "กรุณาระบุ lat และ lng ให้ถูกต้อง" });
+    if (
+      lat === undefined ||
+      lng === undefined ||
+      !isLatitude(lat) ||
+      !isLongitude(lng) ||
+      distance === undefined ||
+      distance < 0
+    ) {
+      return res.status(400).json({
+        error: "กรุณาระบุ lat/lng ในช่วงที่ถูกต้อง และ distance เป็นจำนวนไม่ติดลบ",
+      });
     }
 
     // สูตร Haversine สำหรับคำนวณระยะทางบนพื้นผิวโลก (กิโลเมตร)
     const sql = `
       SELECT *, 
         (6371 * acos(
-          cos(radians(?)) * cos(radians(lat)) * 
-          cos(radians(lng) - radians(?)) + 
-          sin(radians(?)) * sin(radians(lat))
+          LEAST(1, GREATEST(-1,
+            cos(radians(?)) * cos(radians(lat)) *
+            cos(radians(lng) - radians(?)) +
+            sin(radians(?)) * sin(radians(lat))
+          ))
         )) AS distance
       FROM customers
       HAVING distance <= ?

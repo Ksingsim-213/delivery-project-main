@@ -1,8 +1,37 @@
 import express from "express";
 import { conn } from "../dbconnect"; 
 import { Order } from "../model/order"; 
+import {
+  isNonEmptyString,
+  isPositiveInteger,
+  isRecord,
+  isValidOrderQuantity,
+  isLatitude,
+  isLongitude,
+  parseFiniteQueryNumber,
+} from "./validation";
 
 export const router = express.Router();
+
+type OrderInput = Pick<Order, "customer_id" | "quantity">;
+type OrderUpdate = Partial<Pick<Order, "customer_id" | "quantity" | "status">>;
+
+const isOrderInput = (value: unknown): value is OrderInput =>
+  isRecord(value) &&
+  isPositiveInteger(value.customer_id) &&
+  isValidOrderQuantity(value.quantity);
+
+const isOrderUpdate = (value: unknown): value is OrderUpdate => {
+  const allowedFields = ["customer_id", "quantity", "status"];
+  return (
+    isRecord(value) &&
+    Object.keys(value).length > 0 &&
+    Object.keys(value).every((field) => allowedFields.includes(field)) &&
+    (!("customer_id" in value) || isPositiveInteger(value.customer_id)) &&
+    (!("quantity" in value) || isValidOrderQuantity(value.quantity)) &&
+    (!("status" in value) || isNonEmptyString(value.status))
+  );
+};
 
 // 1. API ดึงข้อมูลออเดอร์ทั้งหมด พร้อมข้อมูลลูกค้า (GET /)
 router.get("/", async (req, res) => {
@@ -36,12 +65,24 @@ router.get("/", async (req, res) => {
 // *** สำคัญ: ต้องวางไว้ก่อน /:id เสมอ ***
 router.get("/nearby", async (req, res) => {
   try {
-    const lat = parseFloat(req.query.lat as string);
-    const lng = parseFloat(req.query.lng as string);
-    const distance = parseFloat((req.query.distance as string) || "2"); // 2 กม. ตามโจทย์
+    const lat = parseFiniteQueryNumber(req.query.lat);
+    const lng = parseFiniteQueryNumber(req.query.lng);
+    const distance =
+      req.query.distance === undefined
+        ? 2
+        : parseFiniteQueryNumber(req.query.distance);
 
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ error: "กรุณาระบุ lat และ lng ให้ถูกต้อง" });
+    if (
+      lat === undefined ||
+      lng === undefined ||
+      !isLatitude(lat) ||
+      !isLongitude(lng) ||
+      distance === undefined ||
+      distance < 0
+    ) {
+      return res.status(400).json({
+        error: "กรุณาระบุ lat/lng ในช่วงที่ถูกต้อง และ distance เป็นจำนวนไม่ติดลบ",
+      });
     }
 
     const sql = `
@@ -55,9 +96,11 @@ router.get("/nearby", async (req, res) => {
         customers.lat,
         customers.lng,
         (6371 * acos(
-          cos(radians(?)) * cos(radians(customers.lat)) * 
-          cos(radians(customers.lng) - radians(?)) + 
-          sin(radians(?)) * sin(radians(customers.lat))
+          LEAST(1, GREATEST(-1,
+            cos(radians(?)) * cos(radians(customers.lat)) *
+            cos(radians(customers.lng) - radians(?)) +
+            sin(radians(?)) * sin(radians(customers.lat))
+          ))
         )) AS distance
       FROM orders
       JOIN customers ON orders.customer_id = customers.id
@@ -84,16 +127,17 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ error: "กรุณาส่งข้อมูลออเดอร์อย่างน้อย 1 รายการ" });
       }
 
-      // ตรวจสอบเงื่อนไขจำนวนกล่อง (ไม่เกิน 3 กล่องต่อออเดอร์)
-      const isInvalidQuantity = data.some((item: Order) => item.quantity > 3);
-      if (isInvalidQuantity) {
-        return res.status(400).json({ error: "มีรายการที่สั่งซื้อเกิน 3 กล่อง (จำกัดไม่เกิน 3 กล่องต่อรายการ)" });
+      const orders = data.filter(isOrderInput);
+      if (orders.length !== data.length) {
+        return res.status(400).json({
+          error: "ข้อมูลออเดอร์แต่ละรายการต้องมี customer_id เป็นจำนวนเต็มบวก และ quantity ตั้งแต่ 1 ถึง 3",
+        });
       }
 
       // สร้าง SQL Insert แบบหลายรายการ
       const placeholders = data.map(() => "(?, ?)").join(", ");
       const sql = `INSERT INTO \`orders\` (\`customer_id\`, \`quantity\`) VALUES ${placeholders}`;
-      const values = data.flatMap((o: Order) => [o.customer_id, o.quantity]);
+      const values = orders.flatMap((o) => [o.customer_id, o.quantity]);
 
       const [result] = await conn.query(sql, values);
       const insertResult = result as any;
@@ -104,11 +148,13 @@ router.post("/", async (req, res) => {
     }
 
     // กรณีส่งมาเป็น Object (1 รายการ)
-    let order: Order = data; 
-    
-    if (order.quantity > 3) {
-      return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
+    if (!isOrderInput(data)) {
+      return res.status(400).json({
+        error: "ต้องระบุ customer_id เป็นจำนวนเต็มบวก และ quantity ตั้งแต่ 1 ถึง 3",
+      });
     }
+
+    const order = data;
     
     let sql = "INSERT INTO `orders`(`customer_id`, `quantity`) VALUES (?,?)";
     const [result] = await conn.query(sql, [
@@ -187,10 +233,15 @@ router.delete("/clear-all", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     let id = req.params.id;
-    let newOrderData: Partial<Order> = req.body;
-    
-    if (newOrderData.quantity && newOrderData.quantity > 3) {
-      return res.status(400).json({ error: "ลูกค้า 1 ราย สั่งได้ไม่เกิน 3 กล่องครับ" });
+    const orderId = Number(id);
+    const newOrderData: unknown = req.body;
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ error: "รหัสออเดอร์ต้องเป็นจำนวนเต็มบวก" });
+    }
+
+    if (!isOrderUpdate(newOrderData)) {
+      return res.status(400).json({ error: "ข้อมูลออเดอร์ที่ส่งมาไม่ถูกต้อง" });
     }
     
     const [rows] = await conn.query("SELECT * FROM orders WHERE id = ?", [id]);
