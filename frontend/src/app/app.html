@@ -1,0 +1,47 @@
+<div class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <a routerLink="/dashboard" class="text-lg font-bold tracking-tight text-indigo-700">
+        Delivery Manager
+      </a>
+      <span class="text-sm text-slate-500">ระบบจัดการงานจัดส่ง</span>
+    </div>
+  </header>
+
+  <div class="mx-auto grid max-w-7xl gap-6 px-6 py-6 md:grid-cols-[220px_1fr]">
+    <nav aria-label="เมนูหลัก" class="flex gap-2 overflow-x-auto md:flex-col">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="bg-indigo-50 text-indigo-700"
+        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+      >
+        ภาพรวม
+      </a>
+      <a
+        routerLink="/customers"
+        routerLinkActive="bg-indigo-50 text-indigo-700"
+        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+      >
+        ลูกค้า
+      </a>
+      <a
+        routerLink="/orders"
+        routerLinkActive="bg-indigo-50 text-indigo-700"
+        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+      >
+        ออเดอร์
+      </a>
+      <a
+        routerLink="/routes"
+        routerLinkActive="bg-indigo-50 text-indigo-700"
+        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+      >
+        เส้นทางจัดส่ง
+      </a>
+    </nav>
+
+    <main class="min-w-0 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <router-outlet />
+    </main>
+  </div>
+</div>
