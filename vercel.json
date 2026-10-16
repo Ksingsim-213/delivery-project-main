@@ -1,8 +1,5 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/backend/app.ts"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
