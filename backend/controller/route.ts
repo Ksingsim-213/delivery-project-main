@@ -176,7 +176,7 @@ const buildDriverAssignments = (orders: StopRow[], driverCountInput: number) => 
       customer_id: Number(order.customer_id),
       customer_name: String(order.customer_name),
       customer_phone: String(order.customer_phone),
-      quantity: clampValue(toNumber(order.quantity, 0), 1, 3),
+      quantity: Math.max(1, toNumber(order.quantity, 0)),
       lat: toNumber(order.lat, RESTAURANT.lat),
       lng: toNumber(order.lng, RESTAURANT.lng),
     }))

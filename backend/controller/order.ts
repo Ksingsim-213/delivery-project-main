@@ -130,7 +130,7 @@ router.post("/", async (req, res) => {
       const orders = data.filter(isOrderInput);
       if (orders.length !== data.length) {
         return res.status(400).json({
-          error: "ข้อมูลออเดอร์แต่ละรายการต้องมี customer_id เป็นจำนวนเต็มบวก และ quantity ตั้งแต่ 1 ถึง 3",
+          error: "ข้อมูลออเดอร์แต่ละรายการต้องมี customer_id และ quantity เป็นจำนวนเต็มบวก",
         });
       }
 
@@ -150,7 +150,7 @@ router.post("/", async (req, res) => {
     // กรณีส่งมาเป็น Object (1 รายการ)
     if (!isOrderInput(data)) {
       return res.status(400).json({
-        error: "ต้องระบุ customer_id เป็นจำนวนเต็มบวก และ quantity ตั้งแต่ 1 ถึง 3",
+        error: "ต้องระบุ customer_id และ quantity เป็นจำนวนเต็มบวก",
       });
     }
 

@@ -24,6 +24,9 @@ export class Orders implements AfterViewInit, OnDestroy {
   name = '';
   pos = '';
   boxes = 1;
+  editingOrderId: number | null = null;
+  editBoxes = 1;
+  editError = '';
 
   private map!: L.Map;
   private pins = L.layerGroup();
@@ -91,11 +94,47 @@ export class Orders implements AfterViewInit, OnDestroy {
     this.error = 'คลิกบนแผนที่เพื่อปักพิกัดบ้านลูกค้า';
   }
 
+  editOrder(order: Order): void {
+    if (order.id === undefined) {
+      this.editError = 'ไม่พบรหัสออเดอร์';
+      return;
+    }
+
+    this.editingOrderId = order.id;
+    this.editBoxes = order.boxes;
+    this.editError = '';
+  }
+
+  cancelEdit(): void {
+    this.editingOrderId = null;
+    this.editError = '';
+  }
+
+  saveEdit(): void {
+    if (this.editingOrderId === null) return;
+    if (!Number.isSafeInteger(this.editBoxes) || this.editBoxes < 1) {
+      this.editError = 'จำนวนกล่องต้องเป็นจำนวนเต็มบวก';
+      return;
+    }
+
+    this.editError = '';
+    this.data.updateOrder(this.editingOrderId, this.editBoxes).subscribe({
+      next: () => {
+        this.editingOrderId = null;
+        this.loadOrders();
+      },
+      error: () => {
+        this.editError = 'แก้ไขออเดอร์ไม่สำเร็จ';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   save(): void {
     const [lat, lng] = this.pos.split(',').map(s => parseFloat(s));
     if (!this.name.trim()) { this.error = 'กรอกชื่อลูกค้า'; return; }
     if (isNaN(lat) || isNaN(lng)) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบ 13.7563, 100.5018 หรือกดปักบนแผนที่'; return; }
-    if (!(this.boxes >= 1)) { this.error = 'จำนวนกล่องต้องมากกว่า 0'; return; }
+    if (!Number.isSafeInteger(this.boxes) || this.boxes < 1) { this.error = 'จำนวนกล่องต้องเป็นจำนวนเต็มบวก'; return; }
     this.error = '';
 
     this.data.addOrder({ name: this.name.trim(), phone: this.phone.trim(), lat, lng, boxes: this.boxes }).subscribe({

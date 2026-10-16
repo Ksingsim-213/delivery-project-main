@@ -36,7 +36,7 @@
 
           <fieldset class="fieldset">
             <legend class="fieldset-legend">จำนวนกล่อง</legend>
-            <input id="boxes" class="input w-full" type="number" min="1" [(ngModel)]="boxes" name="boxes" />
+            <input id="boxes" class="input w-full" type="number" min="1" step="1" [(ngModel)]="boxes" name="boxes" />
           </fieldset>
 
           <div *ngIf="error" role="alert" class="alert alert-soft text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
@@ -48,14 +48,31 @@
         <div class="card-body gap-1">
           <h3 class="card-title">รายการออเดอร์</h3>
           <ul class="list">
-            <li class="list-row items-center" *ngFor="let o of orders">
-              <div class="list-col-grow">
-                <div>{{ o.name }}</div>
+            <li class="list-row items-center gap-2" *ngFor="let o of orders">
+              <div class="list-col-grow min-w-0">
+                <div class="truncate">{{ o.name }}</div>
                 <div class="text-xs opacity-60">{{ o.phone }}</div>
               </div>
-              <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
+              <ng-container *ngIf="editingOrderId === o.id; else orderQuantity">
+                <input
+                  class="input input-bordered input-sm w-20"
+                  type="number"
+                  min="1"
+                  step="1"
+                  [(ngModel)]="editBoxes"
+                  [name]="'editBoxes-' + o.id"
+                  [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
+                />
+                <button type="button" class="btn btn-primary btn-sm" (click)="saveEdit()">บันทึก</button>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="cancelEdit()">ยกเลิก</button>
+              </ng-container>
+              <ng-template #orderQuantity>
+                <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
+                <button type="button" class="btn btn-outline btn-sm" (click)="editOrder(o)">แก้ไข</button>
+              </ng-template>
             </li>
           </ul>
+          <p *ngIf="editError" role="alert" class="text-sm text-error">{{ editError }}</p>
           <p class="py-4 text-center opacity-50" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
         </div>
       </div>

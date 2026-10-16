@@ -65,6 +65,10 @@ export class DeliveryData {
     return this.http.put(`${environment.apiUrl}/customer/${id}`, customer);
   }
 
+  updateOrder(id: number, quantity: number): Observable<unknown> {
+    return this.http.put(`${environment.apiUrl}/order/${id}`, { quantity });
+  }
+
   addOrder(order: NewOrder): Observable<void> {
     return this.findCustomer(order.phone).pipe(
       switchMap((customer) => {
