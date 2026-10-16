@@ -95,7 +95,7 @@ export class Orders implements AfterViewInit, OnDestroy {
     const [lat, lng] = this.pos.split(',').map(s => parseFloat(s));
     if (!this.name.trim()) { this.error = 'กรอกชื่อลูกค้า'; return; }
     if (isNaN(lat) || isNaN(lng)) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบ 13.7563, 100.5018 หรือกดปักบนแผนที่'; return; }
-    if (!(this.boxes >= 1 && this.boxes <= 3)) { this.error = 'จำนวนกล่องต้องอยู่ระหว่าง 1–3'; return; }
+    if (!(this.boxes >= 1)) { this.error = 'จำนวนกล่องต้องมากกว่า 0'; return; }
     this.error = '';
 
     this.data.addOrder({ name: this.name.trim(), phone: this.phone.trim(), lat, lng, boxes: this.boxes }).subscribe({
