@@ -17,9 +17,9 @@
     "@angular/forms": "^22.0.0",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "daisyui": "^5.7.50",
     "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
-    "daisyui": "^5.7.50",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
