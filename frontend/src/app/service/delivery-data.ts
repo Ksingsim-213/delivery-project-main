@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap, throwError } from 'rxjs';
 import { Customer, Order } from '../models/delivery.model';
+import { environment } from '../../environments/environment';
 
 interface OrderRow {
   order_id: number;
@@ -26,18 +27,16 @@ interface NewOrder {
   boxes: number;
 }
 
-const API_URL = 'http://localhost:5000';
-
 @Injectable({ providedIn: 'root' })
 export class DeliveryData {
   private readonly http = inject(HttpClient);
 
   getCustomers(): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`${API_URL}/customer`);
+    return this.http.get<Customer[]>(`${environment.apiUrl}/customer`);
   }
 
   getOrders(): Observable<Order[]> {
-    return this.http.get<OrderRow[]>(`${API_URL}/order`).pipe(
+    return this.http.get<OrderRow[]>(`${environment.apiUrl}/order`).pipe(
       map((rows) =>
         rows.map((row) => ({
           id: row.order_id,
@@ -59,11 +58,11 @@ export class DeliveryData {
   }
 
   addCustomer(customer: Customer): Observable<CreateCustomerResponse> {
-    return this.http.post<CreateCustomerResponse>(`${API_URL}/customer`, customer);
+    return this.http.post<CreateCustomerResponse>(`${environment.apiUrl}/customer`, customer);
   }
 
   updateCustomer(id: number, customer: Customer): Observable<unknown> {
-    return this.http.put(`${API_URL}/customer/${id}`, customer);
+    return this.http.put(`${environment.apiUrl}/customer/${id}`, customer);
   }
 
   addOrder(order: NewOrder): Observable<void> {
@@ -82,7 +81,7 @@ export class DeliveryData {
         }).pipe(map((result) => result.customer_id));
       }),
       switchMap((customerId) =>
-        this.http.post(`${API_URL}/order`, {
+        this.http.post(`${environment.apiUrl}/order`, {
           customer_id: customerId,
           quantity: order.boxes,
         }),
