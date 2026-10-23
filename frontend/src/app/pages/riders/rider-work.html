@@ -1,0 +1,76 @@
+<main class="mx-auto flex min-h-[70vh] max-w-xl flex-col gap-4 p-2 pb-10 sm:p-4">
+  <a routerLink="/riders" class="btn btn-ghost min-h-11 self-start">← กลับหน้าแผนเส้นทาง</a>
+
+  <header class="rounded-box bg-primary p-5 text-primary-content">
+    <p class="text-sm opacity-80">ใบงานจัดส่ง</p>
+    <h1 class="mt-1 text-2xl font-bold">ไรเดอร์ {{ driver?.driver_id }}</h1>
+    <p class="mt-2">วันนี้ต้องนำไปส่งทั้งหมด</p>
+    <p class="text-4xl font-extrabold">{{ driver?.total_boxes ?? 0 }} <span class="text-xl">กล่อง</span></p>
+    <p class="mt-1 text-sm opacity-80">{{ driver?.sequence?.length ?? 0 }} จุดส่ง · ประมาณ {{ driver?.total_distance_km ?? 0 }} กม.</p>
+  </header>
+
+  <div role="alert" class="alert alert-warning alert-soft">
+    หน้านี้ยังไม่มีระบบล็อกอิน ใครมีลิงก์ก็เปิดดูใบงานได้ กรุณาอย่าแชร์ลิงก์นี้ต่อ
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+  </div>
+  <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
+
+  <ng-container *ngIf="driver && restaurant">
+    <section class="card card-border bg-base-100">
+      <div class="card-body gap-3 p-4">
+        <h2 class="card-title">ลำดับการจัดส่ง</h2>
+        <p class="text-sm opacity-60">เริ่มจากร้าน แล้วส่งตามลำดับด้านล่าง ก่อนขับกลับร้าน</p>
+
+        <ol class="flex flex-col gap-3">
+          <li
+            class="rounded-box border border-base-300 p-4"
+            *ngFor="let stop of driver.sequence; let i = index"
+          >
+            <div class="flex items-start gap-3">
+              <span class="badge badge-primary badge-lg shrink-0">{{ i + 1 }}</span>
+              <div class="min-w-0 flex-1">
+                <h3 class="break-words font-bold">{{ stop.customer_name }}</h3>
+                <a class="link link-hover text-sm" [href]="'tel:' + stop.customer_phone">{{ stop.customer_phone }}</a>
+                <p class="mt-1 text-sm">{{ stop.quantity }} กล่อง</p>
+                <a
+                  class="btn btn-primary mt-3 min-h-11 w-full"
+                  [href]="directionsUrl(previousStop(i), stop)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  เปิดนำทางไปจุดที่ {{ i + 1 }}
+                </a>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="rounded-box border border-dashed border-base-300 p-4">
+          <h3 class="font-bold">จุดสุดท้าย: กลับร้าน</h3>
+          <p class="text-sm opacity-60">{{ restaurant.name }}</p>
+          <a
+            *ngIf="driver.sequence.length > 0"
+            class="btn btn-outline mt-3 min-h-11 w-full"
+            [href]="directionsUrl(driver.sequence[driver.sequence.length - 1]!, restaurant)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            เปิดนำทางกลับร้าน
+          </a>
+          <a
+            *ngIf="driver.sequence.length === 0"
+            class="btn btn-outline mt-3 min-h-11 w-full"
+            [href]="directionsUrl(restaurant, restaurant)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            เปิดแผนที่ร้าน
+          </a>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</main>

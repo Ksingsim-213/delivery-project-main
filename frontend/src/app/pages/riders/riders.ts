@@ -1,13 +1,14 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import * as L from 'leaflet';
 import { DriverRoute, RoutePlan } from '../../models/delivery.model';
 import { DeliveryData } from '../../service/delivery-data';
 import { createMap, esc, pinIcon } from '../../utils/map-utils';
 
 @Component({
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   selector: 'app-riders',
   styleUrl: './riders.css',
   templateUrl: './riders.html',
@@ -23,7 +24,7 @@ export class Riders implements AfterViewInit, OnDestroy {
 
   private map!: L.Map;
   private routeLayers = L.layerGroup();
-  private readonly routeColors = ['#4f46e5', '#059669', '#ea580c', '#db2777', '#0891b2'];
+  private readonly routeColors = ['#dc2626', '#16a34a', '#2563eb', '#ea580c', '#9333ea'];
 
   constructor(private data: DeliveryData, private cdr: ChangeDetectorRef) {}
 
@@ -74,7 +75,6 @@ export class Riders implements AfterViewInit, OnDestroy {
     if (!this.map) return;
 
     this.routeLayers.clearLayers();
-    const driver = this.selectedDriver;
     const points: L.LatLngTuple[] = [];
 
     if (this.plan) {
@@ -84,13 +84,14 @@ export class Riders implements AfterViewInit, OnDestroy {
         .bindPopup(esc(this.plan.restaurant.name))
         .addTo(this.routeLayers);
 
-      if (driver) {
+      const stopsByPosition = new Map<
+        string,
+        Array<{ driverId: number; color: string; stop: DriverRoute['sequence'][number]; sequenceNumber: number }>
+      >();
+
+      for (const driver of this.plan.drivers) {
         const routePoints: L.LatLngTuple[] = [depot];
         const color = this.colorFor(driver.driver_id);
-        const stopsByPosition = new Map<
-          string,
-          Array<{ stop: DriverRoute['sequence'][number]; sequenceNumber: number }>
-        >();
 
         driver.sequence.forEach((stop, index) => {
           const position: L.LatLngTuple = [stop.lat, stop.lng];
@@ -98,30 +99,37 @@ export class Riders implements AfterViewInit, OnDestroy {
           points.push(position);
           const key = `${stop.lat},${stop.lng}`;
           const groupedStops = stopsByPosition.get(key) ?? [];
-          groupedStops.push({ stop, sequenceNumber: index + 1 });
+          groupedStops.push({ driverId: driver.driver_id, color, stop, sequenceNumber: index + 1 });
           stopsByPosition.set(key, groupedStops);
         });
 
-        for (const groupedStops of stopsByPosition.values()) {
-          const { lat, lng } = groupedStops[0]!.stop;
-          const label =
-            groupedStops.length === 1 ? String(groupedStops[0]!.sequenceNumber) : `${groupedStops.length} จุด`;
-          const popup = groupedStops
-            .map(
-              ({ stop, sequenceNumber }) =>
-                `${sequenceNumber}. ${esc(stop.customer_name)} · ${stop.quantity} กล่อง<br>${esc(stop.customer_phone)}`,
-            )
-            .join('<hr>');
-
-          L.marker([lat, lng], { icon: pinIcon(label, color) })
-            .bindPopup(popup)
-            .addTo(this.routeLayers);
-        }
-
         if (driver.sequence.length > 0) {
           routePoints.push(depot);
-          L.polyline(routePoints, { color, weight: 4, opacity: 0.8 }).addTo(this.routeLayers);
+          const isSelected = driver.driver_id === this.selectedDriverId;
+          L.polyline(routePoints, {
+            color,
+            weight: isSelected ? 5 : 4,
+            opacity: this.selectedDriverId === null || isSelected ? 0.85 : 0.55,
+          }).addTo(this.routeLayers);
         }
+      }
+
+      for (const groupedStops of stopsByPosition.values()) {
+        const { lat, lng } = groupedStops[0]!.stop;
+        const label =
+          groupedStops.length === 1
+            ? `${groupedStops[0]!.driverId}.${groupedStops[0]!.sequenceNumber}`
+            : `${groupedStops.length} จุด`;
+        const popup = groupedStops
+          .map(
+            ({ driverId, stop, sequenceNumber }) =>
+              `ไรเดอร์ ${driverId} · จุด ${sequenceNumber}: ${esc(stop.customer_name)} · ${stop.quantity} กล่อง<br>${esc(stop.customer_phone)}`,
+          )
+          .join('<hr>');
+
+        L.marker([lat, lng], { icon: pinIcon(label, groupedStops[0]!.color) })
+          .bindPopup(popup)
+          .addTo(this.routeLayers);
       }
     }
 
@@ -134,5 +142,9 @@ export class Riders implements AfterViewInit, OnDestroy {
 
   private colorFor(driverId: number): string {
     return this.routeColors[(driverId - 1) % this.routeColors.length] ?? this.routeColors[0];
+  }
+
+  colorForDriver(driverId: number): string {
+    return this.colorFor(driverId);
   }
 }

@@ -25,6 +25,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/riders/riders').then((page) => page.Riders),
   },
   {
+    path: 'riders/work/:driverId',
+    loadComponent: () =>
+      import('./pages/riders/rider-work').then((page) => page.RiderWork),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

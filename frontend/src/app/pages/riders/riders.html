@@ -2,8 +2,8 @@
   <header class="flex flex-wrap items-end justify-between gap-4 border-b border-base-300 pb-4">
     <div>
       <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">จัดส่ง</p>
-      <h1 class="mt-1 text-2xl font-bold">เส้นทางไรเดอร์</h1>
-      <p class="mt-1 text-sm opacity-60">จัดออเดอร์ให้ไรเดอร์และดูจุดส่งตามลำดับ</p>
+      <h1 class="mt-1 text-2xl font-bold">จัดเส้นทางจัดส่ง</h1>
+      <p class="mt-1 text-sm opacity-60">ภาพรวมเส้นทางของไรเดอร์ทุกคนและใบงานรายคัน</p>
     </div>
     <div class="flex items-end gap-2">
       <label class="fieldset">
@@ -20,8 +20,9 @@
       </label>
       <button type="button" class="btn btn-primary" (click)="loadRoutePlan()" [disabled]="loading">
         <span class="loading loading-spinner loading-sm" *ngIf="loading"></span>
-        {{ loading ? 'กำลังจัดเส้นทาง...' : 'จัดเส้นทางใหม่' }}
+        {{ loading ? 'กำลังจัดเส้นทาง...' : 'จัดเส้นทาง' }}
       </button>
+      <a routerLink="/orders" class="btn btn-outline">จัดการออเดอร์</a>
     </div>
   </header>
 
@@ -52,7 +53,7 @@
     <div>
       <div #mapEl class="relative z-0 h-[380px] rounded-box border border-base-300 lg:h-[540px]"></div>
       <p class="mt-2 text-sm opacity-60">
-        แผนที่แสดงเส้นทางของไรเดอร์ที่เลือก ระยะทางคำนวณโดยประมาณ; หมุดที่พิกัดซ้ำจะแสดงรวมกัน กดหมุดเพื่อดูรายการทั้งหมด
+        แสดงทุกเส้นทาง · ระยะทางและเส้นเชื่อมเป็นค่าประมาณจากพิกัด ไม่ใช่เส้นถนนจริง · กดหมุดพิกัดซ้ำเพื่อดูออเดอร์ทั้งหมด
       </p>
     </div>
 
@@ -62,24 +63,38 @@
         <p class="text-sm opacity-60" *ngIf="routePlan.drivers.length === 0">ยังไม่มีออเดอร์ที่รอจัดส่ง</p>
 
         <ng-container *ngFor="let driver of routePlan.drivers">
-          <button
-            type="button"
-            class="rounded-box border p-3 text-left transition hover:bg-base-200"
+          <article
+            class="rounded-box border p-3 transition"
             [class.border-primary]="selectedDriverId === driver.driver_id"
             [class.bg-primary]="selectedDriverId === driver.driver_id"
             [class.bg-opacity-5]="selectedDriverId === driver.driver_id"
             [class.border-base-300]="selectedDriverId !== driver.driver_id"
-            [attr.aria-pressed]="selectedDriverId === driver.driver_id"
-            (click)="selectDriver(driver.driver_id)"
           >
-            <span class="flex items-center justify-between gap-2">
-              <span class="font-semibold">ไรเดอร์ {{ driver.driver_id }}</span>
-              <span class="badge badge-primary badge-soft">{{ driver.total_boxes }} กล่อง</span>
-            </span>
-            <span class="mt-1 block text-sm opacity-60">
-              {{ driver.sequence.length }} จุดส่ง · {{ driver.total_distance_km }} กม.
-            </span>
-          </button>
+            <button
+              type="button"
+              class="w-full text-left"
+              [attr.aria-pressed]="selectedDriverId === driver.driver_id"
+              (click)="selectDriver(driver.driver_id)"
+            >
+              <span class="flex items-center justify-between gap-2">
+                <span class="flex items-center gap-2 font-semibold">
+                  <span class="h-3 w-3 rounded-full" [style.backgroundColor]="colorForDriver(driver.driver_id)"></span>
+                  ไรเดอร์ {{ driver.driver_id }}
+                </span>
+                <span class="badge badge-primary badge-soft">{{ driver.total_boxes }} กล่อง</span>
+              </span>
+              <span class="mt-1 block text-sm opacity-60">
+                {{ driver.sequence.length }} จุดส่ง · {{ driver.total_distance_km }} กม.
+              </span>
+            </button>
+            <a
+              class="btn btn-primary btn-sm mt-3 w-full"
+              [routerLink]="['/riders/work', driver.driver_id]"
+              [queryParams]="{ drivers: driverCount }"
+            >
+              เปิดใบงาน
+            </a>
+          </article>
         </ng-container>
 
         <div *ngIf="selectedDriver as driver" class="divider my-1">ลำดับจุดส่ง</div>
