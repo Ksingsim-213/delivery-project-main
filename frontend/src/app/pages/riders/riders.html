@@ -1,4 +1,99 @@
-<section>
-  <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">จัดส่ง</p>
-  <h1 class="mt-2 text-2xl font-bold">ไรเดอร์</h1>
-</section>
+<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
+  <header class="flex flex-wrap items-end justify-between gap-4 border-b border-base-300 pb-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">จัดส่ง</p>
+      <h1 class="mt-1 text-2xl font-bold">เส้นทางไรเดอร์</h1>
+      <p class="mt-1 text-sm opacity-60">จัดออเดอร์ให้ไรเดอร์และดูจุดส่งตามลำดับ</p>
+    </div>
+    <div class="flex items-end gap-2">
+      <label class="fieldset">
+        <span class="fieldset-legend">จำนวนไรเดอร์</span>
+        <input
+          class="input input-bordered w-28"
+          type="number"
+          min="1"
+          max="10"
+          step="1"
+          [(ngModel)]="driverCount"
+          aria-label="จำนวนไรเดอร์"
+        />
+      </label>
+      <button type="button" class="btn btn-primary" (click)="loadRoutePlan()" [disabled]="loading">
+        <span class="loading loading-spinner loading-sm" *ngIf="loading"></span>
+        {{ loading ? 'กำลังจัดเส้นทาง...' : 'จัดเส้นทางใหม่' }}
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
+
+  <ng-container *ngIf="plan as routePlan">
+    <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+      <div class="stat">
+        <div class="stat-title">ออเดอร์ที่จัดส่ง</div>
+        <div class="stat-value">{{ routePlan.total_orders }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">กล่องทั้งหมด</div>
+        <div class="stat-value">{{ routePlan.total_boxes }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">ไรเดอร์ที่มีงาน</div>
+        <div class="stat-value text-primary">{{ routePlan.drivers.length }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">ระยะทางรวมโดยประมาณ</div>
+        <div class="stat-value">{{ routePlan.total_distance_km }} <span class="text-lg">กม.</span></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div>
+      <div #mapEl class="relative z-0 h-[380px] rounded-box border border-base-300 lg:h-[540px]"></div>
+      <p class="mt-2 text-sm opacity-60">แผนที่แสดงเส้นทางของไรเดอร์ที่เลือก ระยะทางคำนวณโดยประมาณ</p>
+    </div>
+
+    <section class="card card-border bg-base-100" *ngIf="plan as routePlan">
+      <div class="card-body gap-3">
+        <h2 class="card-title">งานของไรเดอร์</h2>
+        <p class="text-sm opacity-60" *ngIf="routePlan.drivers.length === 0">ยังไม่มีออเดอร์ที่รอจัดส่ง</p>
+
+        <ng-container *ngFor="let driver of routePlan.drivers">
+          <button
+            type="button"
+            class="rounded-box border p-3 text-left transition hover:bg-base-200"
+            [class.border-primary]="selectedDriverId === driver.driver_id"
+            [class.bg-primary]="selectedDriverId === driver.driver_id"
+            [class.bg-opacity-5]="selectedDriverId === driver.driver_id"
+            [class.border-base-300]="selectedDriverId !== driver.driver_id"
+            [attr.aria-pressed]="selectedDriverId === driver.driver_id"
+            (click)="selectDriver(driver.driver_id)"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span class="font-semibold">ไรเดอร์ {{ driver.driver_id }}</span>
+              <span class="badge badge-primary badge-soft">{{ driver.total_boxes }} กล่อง</span>
+            </span>
+            <span class="mt-1 block text-sm opacity-60">
+              {{ driver.sequence.length }} จุดส่ง · {{ driver.total_distance_km }} กม.
+            </span>
+          </button>
+        </ng-container>
+
+        <div *ngIf="selectedDriver as driver" class="divider my-1">ลำดับจุดส่ง</div>
+        <ol *ngIf="selectedDriver as driver" class="list">
+          <li class="list-row items-start gap-3" *ngFor="let stop of driver.sequence; let i = index">
+            <span class="badge badge-neutral badge-sm mt-1">{{ i + 1 }}</span>
+            <div class="list-col-grow min-w-0">
+              <div class="truncate font-medium">{{ stop.customer_name }}</div>
+              <div class="text-xs opacity-60">{{ stop.customer_phone }}</div>
+              <div class="mt-1 text-xs opacity-70">
+                {{ stop.quantity }} กล่อง · จากจุดก่อนหน้า {{ stop.distance_from_previous_km }} กม.
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </div>
+</div>

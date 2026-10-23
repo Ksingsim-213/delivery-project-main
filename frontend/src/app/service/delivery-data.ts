@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap, throwError } from 'rxjs';
-import { Customer, Order } from '../models/delivery.model';
+import { Customer, Order, RoutePlan } from '../models/delivery.model';
 import { environment } from '../../environments/environment';
 
 interface OrderRow {
@@ -49,6 +49,12 @@ export class DeliveryData {
         })),
       ),
     );
+  }
+
+  getRoutePlan(drivers: number): Observable<RoutePlan> {
+    return this.http.get<RoutePlan>(`${environment.apiUrl}/route`, {
+      params: { drivers },
+    });
   }
 
   findCustomer(phone: string): Observable<Customer | undefined> {
