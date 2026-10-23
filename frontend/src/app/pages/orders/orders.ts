@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { DeliveryData } from '../../service/delivery-data';
 import { DEPOT, Order } from '../../models/delivery.model';
+import { formatCoordinates, parseCoordinates } from '../../utils/coordinates';
 import { createMap, esc, pinIcon } from '../../utils/map-utils';
 
 @Component({
@@ -47,7 +48,7 @@ export class Orders implements AfterViewInit, OnDestroy {
       if (!this.picking) return;
       this.picking = false;
       this.error = '';
-      this.pos = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+      this.pos = formatCoordinates(e.latlng);
       this.temp?.remove();
       this.temp = L.marker(e.latlng).addTo(this.map);
       this.cdr.detectChanges();
@@ -131,13 +132,18 @@ export class Orders implements AfterViewInit, OnDestroy {
   }
 
   save(): void {
-    const [lat, lng] = this.pos.split(',').map(s => parseFloat(s));
+    const coordinates = parseCoordinates(this.pos);
     if (!this.name.trim()) { this.error = 'กรอกชื่อลูกค้า'; return; }
-    if (isNaN(lat) || isNaN(lng)) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบ 13.7563, 100.5018 หรือกดปักบนแผนที่'; return; }
+    if (!coordinates) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบละติจูด, ลองจิจูด เช่น 13.7563, 100.5018'; return; }
     if (!Number.isSafeInteger(this.boxes) || this.boxes < 1) { this.error = 'จำนวนกล่องต้องเป็นจำนวนเต็มบวก'; return; }
     this.error = '';
 
-    this.data.addOrder({ name: this.name.trim(), phone: this.phone.trim(), lat, lng, boxes: this.boxes }).subscribe({
+    this.data.addOrder({
+      name: this.name.trim(),
+      phone: this.phone.trim(),
+      ...coordinates,
+      boxes: this.boxes,
+    }).subscribe({
       next: () => {
         this.phone = this.name = this.pos = '';
         this.boxes = 1;

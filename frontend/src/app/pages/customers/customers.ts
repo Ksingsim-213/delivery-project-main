@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { DeliveryData } from '../../service/delivery-data';
 import { Customer } from '../../models/delivery.model';
+import { formatCoordinates, parseCoordinates } from '../../utils/coordinates';
 import { createMap, esc } from '../../utils/map-utils';
 
 @Component({
@@ -43,7 +44,7 @@ export class Customers implements AfterViewInit, OnDestroy {
       if (!this.picking) return;
       this.picking = false;
       this.error = '';
-      this.pos = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+      this.pos = formatCoordinates(e.latlng);
       this.setTemp(e.latlng);
       this.cdr.detectChanges();
     });
@@ -90,13 +91,13 @@ export class Customers implements AfterViewInit, OnDestroy {
   }
 
   save(): void {
-    const [lat, lng] = this.pos.split(',').map(s => parseFloat(s));
+    const coordinates = parseCoordinates(this.pos);
     const phone = this.phone.trim();
     if (!this.name.trim()) { this.error = 'กรอกชื่อลูกค้า'; return; }
     if (!/^\d{9,10}$/.test(phone)) { this.error = 'เบอร์โทรต้องเป็นตัวเลข 9–10 หลัก'; return; }
-    if (isNaN(lat) || isNaN(lng)) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบ 13.7563, 100.5018 หรือกดปักบนแผนที่'; return; }
+    if (!coordinates) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบละติจูด, ลองจิจูด เช่น 13.7563, 100.5018'; return; }
 
-    const body: Customer = { name: this.name.trim(), phone, lat, lng };
+    const body: Customer = { name: this.name.trim(), phone, ...coordinates };
     const req = this.editId == null ? this.data.addCustomer(body) : this.data.updateCustomer(this.editId, body);
     req.subscribe({
       next: () => { this.reset(); this.loadCustomers(); },

@@ -32,7 +32,15 @@ export class DeliveryData {
   private readonly http = inject(HttpClient);
 
   getCustomers(): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`${environment.apiUrl}/customer`);
+    return this.http.get<Customer[]>(`${environment.apiUrl}/customer`).pipe(
+      map((customers) =>
+        customers.map((customer) => ({
+          ...customer,
+          lat: Number(customer.lat),
+          lng: Number(customer.lng),
+        })),
+      ),
+    );
   }
 
   getOrders(): Observable<Order[]> {
@@ -79,9 +87,21 @@ export class DeliveryData {
     return this.findCustomer(order.phone).pipe(
       switchMap((customer) => {
         if (customer) {
-          return customer.id === undefined
-            ? throwError(() => new Error('Customer record has no id'))
-            : of(customer.id);
+          const customerId = customer.id;
+          if (customerId === undefined) {
+            return throwError(() => new Error('Customer record has no id'));
+          }
+
+          if (customer.lat === order.lat && customer.lng === order.lng) {
+            return of(customerId);
+          }
+
+          return this.updateCustomer(customerId, {
+            name: customer.name,
+            phone: customer.phone,
+            lat: order.lat,
+            lng: order.lng,
+          }).pipe(map(() => customerId));
         }
         return this.addCustomer({
           name: order.name,
