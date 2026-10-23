@@ -17,7 +17,7 @@ config:
 request:
   variables:
     - name: baseUrl
-      value: https://delivery-project-main.vercel.app
+      value: https://delivery-project-main-2wy1.vercel.app/
 bundled: false
 extensions:
   bruno:
