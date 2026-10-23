@@ -51,7 +51,9 @@
   <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
     <div>
       <div #mapEl class="relative z-0 h-[380px] rounded-box border border-base-300 lg:h-[540px]"></div>
-      <p class="mt-2 text-sm opacity-60">แผนที่แสดงเส้นทางของไรเดอร์ที่เลือก ระยะทางคำนวณโดยประมาณ</p>
+      <p class="mt-2 text-sm opacity-60">
+        แผนที่แสดงเส้นทางของไรเดอร์ที่เลือก ระยะทางคำนวณโดยประมาณ; หมุดที่พิกัดซ้ำจะแสดงรวมกัน กดหมุดเพื่อดูรายการทั้งหมด
+      </p>
     </div>
 
     <section class="card card-border bg-base-100" *ngIf="plan as routePlan">

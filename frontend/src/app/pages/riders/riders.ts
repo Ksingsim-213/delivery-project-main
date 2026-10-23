@@ -87,16 +87,36 @@ export class Riders implements AfterViewInit, OnDestroy {
       if (driver) {
         const routePoints: L.LatLngTuple[] = [depot];
         const color = this.colorFor(driver.driver_id);
+        const stopsByPosition = new Map<
+          string,
+          Array<{ stop: DriverRoute['sequence'][number]; sequenceNumber: number }>
+        >();
+
         driver.sequence.forEach((stop, index) => {
           const position: L.LatLngTuple = [stop.lat, stop.lng];
           routePoints.push(position);
           points.push(position);
-          L.marker(position, { icon: pinIcon(String(index + 1), color) })
-            .bindPopup(
-              `${index + 1}. ${esc(stop.customer_name)} · ${stop.quantity} กล่อง<br>${esc(stop.customer_phone)}`,
-            )
-            .addTo(this.routeLayers);
+          const key = `${stop.lat},${stop.lng}`;
+          const groupedStops = stopsByPosition.get(key) ?? [];
+          groupedStops.push({ stop, sequenceNumber: index + 1 });
+          stopsByPosition.set(key, groupedStops);
         });
+
+        for (const groupedStops of stopsByPosition.values()) {
+          const { lat, lng } = groupedStops[0]!.stop;
+          const label =
+            groupedStops.length === 1 ? String(groupedStops[0]!.sequenceNumber) : `${groupedStops.length} จุด`;
+          const popup = groupedStops
+            .map(
+              ({ stop, sequenceNumber }) =>
+                `${sequenceNumber}. ${esc(stop.customer_name)} · ${stop.quantity} กล่อง<br>${esc(stop.customer_phone)}`,
+            )
+            .join('<hr>');
+
+          L.marker([lat, lng], { icon: pinIcon(label, color) })
+            .bindPopup(popup)
+            .addTo(this.routeLayers);
+        }
 
         if (driver.sequence.length > 0) {
           routePoints.push(depot);
