@@ -278,9 +278,13 @@ router.put("/:id", async (req, res) => {
 // 6. API ลบออเดอร์แบบรายตัว (DELETE /:id)
 router.delete("/:id", async (req, res) => {
   try {
-    let id = req.params.id;
-    const [result] = await conn.query("DELETE FROM orders WHERE id = ?", [id]);
-    const deleteResult = result as any;
+    const orderId = Number(req.params.id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({ error: "รหัสออเดอร์ต้องเป็นจำนวนเต็มบวก" });
+    }
+
+    const [result] = await conn.query("DELETE FROM orders WHERE id = ?", [orderId]);
+    const deleteResult = result as { affectedRows: number };
     
     if (deleteResult.affectedRows === 0) {
       return res.status(404).json({ error: "ไม่พบออเดอร์นี้" });

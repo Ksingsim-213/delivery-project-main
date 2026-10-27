@@ -91,7 +91,8 @@ type OsrmRouteResponse = {
   code: string;
   routes?: Array<{
     duration: number;
-    legs: Array<{ duration: number }>;
+    distance: number;
+    legs: Array<{ duration: number; distance: number }>;
   }>;
 };
 
@@ -138,16 +139,27 @@ const estimateDriverTimes = async (driver: DriverRoute): Promise<DriverRoute> =>
     !route ||
     route.legs.length !== driver.sequence.length + 1 ||
     !Number.isFinite(route.duration) ||
-    route.legs.some((leg) => !Number.isFinite(leg.duration) || leg.duration < 0)
+    route.duration < 0 ||
+    !Number.isFinite(route.distance) ||
+    route.distance < 0 ||
+    route.legs.some(
+      (leg) =>
+        !Number.isFinite(leg.duration) ||
+        leg.duration < 0 ||
+        !Number.isFinite(leg.distance) ||
+        leg.distance < 0,
+    )
   ) {
-    throw new RouteEstimateError("OSRM did not return valid route durations");
+    throw new RouteEstimateError("OSRM did not return valid route metrics");
   }
 
   const legMinutes = route.legs.map((leg) => Math.ceil(leg.duration / 60));
   return {
     ...driver,
+    total_distance_km: Number((route.distance / 1000).toFixed(2)),
     sequence: driver.sequence.map((stop, index) => ({
       ...stop,
+      distance_from_previous_km: Number((route.legs[index]!.distance / 1000).toFixed(2)),
       duration_from_previous_minutes: legMinutes[index]!,
     })),
     return_duration_minutes: legMinutes[legMinutes.length - 1]!,

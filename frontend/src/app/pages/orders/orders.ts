@@ -28,6 +28,10 @@ export class Orders implements AfterViewInit, OnDestroy {
   editingOrderId: number | null = null;
   editBoxes = 1;
   editError = '';
+  confirmDeleteOrderId: number | null = null;
+  deletingOrderId: number | null = null;
+  deleteError = '';
+  deleteSuccess = '';
 
   private map!: L.Map;
   private pins = L.layerGroup();
@@ -101,6 +105,7 @@ export class Orders implements AfterViewInit, OnDestroy {
       return;
     }
 
+    this.confirmDeleteOrderId = null;
     this.editingOrderId = order.id;
     this.editBoxes = order.boxes;
     this.editError = '';
@@ -109,6 +114,46 @@ export class Orders implements AfterViewInit, OnDestroy {
   cancelEdit(): void {
     this.editingOrderId = null;
     this.editError = '';
+  }
+
+  confirmDelete(order: Order): void {
+    if (order.id === undefined) {
+      this.deleteError = 'ไม่พบรหัสออเดอร์ จึงไม่สามารถลบได้';
+      return;
+    }
+
+    this.editingOrderId = null;
+    this.confirmDeleteOrderId = order.id;
+    this.deleteError = '';
+    this.deleteSuccess = '';
+  }
+
+  cancelDelete(): void {
+    this.confirmDeleteOrderId = null;
+    this.deleteError = '';
+  }
+
+  deleteOrder(order: Order): void {
+    if (order.id === undefined || this.confirmDeleteOrderId !== order.id || this.deletingOrderId !== null) {
+      return;
+    }
+
+    this.deletingOrderId = order.id;
+    this.deleteError = '';
+    this.deleteSuccess = '';
+    this.data.deleteOrder(order.id).subscribe({
+      next: () => {
+        this.deletingOrderId = null;
+        this.confirmDeleteOrderId = null;
+        this.deleteSuccess = `ลบออเดอร์ของ ${order.name} แล้ว`;
+        this.loadOrders();
+      },
+      error: () => {
+        this.deletingOrderId = null;
+        this.deleteError = `ลบออเดอร์ของ ${order.name} ไม่สำเร็จ กรุณาลองอีกครั้ง`;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   saveEdit(): void {

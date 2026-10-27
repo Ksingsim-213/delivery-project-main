@@ -50,35 +50,76 @@
         <h2 class="font-bold">รายการออเดอร์</h2>
         <span class="badge badge-ghost">{{ orders.length }} รายการ</span>
       </div>
+      <p *ngIf="deleteSuccess" role="status" class="mb-2 rounded-lg border border-[#39734A] bg-white px-3 py-2 text-sm text-[#28583A]">
+        {{ deleteSuccess }}
+      </p>
       <ul class="divide-y divide-[#E2E5E0]">
-        <li class="flex min-h-14 items-center gap-2 py-2" *ngFor="let o of orders">
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold">{{ o.name }}</p>
-            <a class="text-xs text-[#465149] underline-offset-2 hover:underline" [href]="'tel:' + o.phone">{{ o.phone }}</a>
-            <span class="mt-1 block text-xs font-medium text-[#59635C]">
-              {{ o.status === 'done' ? 'ส่งแล้ว' : o.status === 'processing' ? 'กำลังจัดส่ง' : o.status === 'ready' ? 'พร้อมส่ง' : 'รอจัดส่ง' }}
-            </span>
+        <li class="min-w-0 py-3" *ngFor="let o of orders">
+          <div class="flex min-w-0 items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <p class="break-words text-sm font-semibold">{{ o.name }}</p>
+              <a class="text-xs text-[#465149] underline-offset-2 hover:underline" [href]="'tel:' + o.phone">{{ o.phone }}</a>
+              <span class="mt-1 block text-xs font-medium text-[#59635C]">
+                {{ o.status === 'done' ? 'ส่งแล้ว' : o.status === 'processing' ? 'กำลังจัดส่ง' : o.status === 'ready' ? 'พร้อมส่ง' : 'รอจัดส่ง' }}
+              </span>
+            </div>
+            <ng-container *ngIf="editingOrderId === o.id; else orderActions">
+              <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                <input
+                  class="input input-bordered min-h-11 w-16"
+                  type="number"
+                  min="1"
+                  step="1"
+                  [(ngModel)]="editBoxes"
+                  [name]="'editBoxes-' + o.id"
+                  [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
+                />
+                <button type="button" class="btn btn-primary min-h-11 px-2" (click)="saveEdit()">บันทึก</button>
+                <button type="button" class="btn btn-ghost min-h-11 px-2" (click)="cancelEdit()">ยกเลิก</button>
+              </div>
+            </ng-container>
+            <ng-template #orderActions>
+              <div class="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
+                <span class="whitespace-nowrap text-sm font-semibold tabular-nums">{{ o.boxes }} กล่อง</span>
+                <div class="flex gap-1">
+                  <button type="button" class="btn btn-outline min-h-11 px-2" (click)="editOrder(o)">แก้ไข</button>
+                  <button
+                    type="button"
+                    class="btn btn-error btn-outline min-h-11 px-2"
+                    [attr.aria-label]="'ลบออเดอร์ของ ' + o.name"
+                    (click)="confirmDelete(o)"
+                  >ลบ</button>
+                </div>
+              </div>
+            </ng-template>
           </div>
-          <ng-container *ngIf="editingOrderId === o.id; else orderQuantity">
-            <input
-              class="input input-bordered min-h-11 w-16"
-              type="number"
-              min="1"
-              step="1"
-              [(ngModel)]="editBoxes"
-              [name]="'editBoxes-' + o.id"
-              [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
-            />
-            <button type="button" class="btn btn-primary min-h-11 px-2" (click)="saveEdit()">บันทึก</button>
-            <button type="button" class="btn btn-ghost min-h-11 px-2" (click)="cancelEdit()">ยกเลิก</button>
-          </ng-container>
-          <ng-template #orderQuantity>
-            <span class="text-sm font-semibold tabular-nums">{{ o.boxes }} กล่อง</span>
-            <button type="button" class="btn btn-outline min-h-11 shrink-0" (click)="editOrder(o)">แก้ไข</button>
-          </ng-template>
+          <div
+            *ngIf="confirmDeleteOrderId === o.id"
+            class="mt-2 rounded-lg border border-error/40 bg-base-100 p-3"
+            role="group"
+            [attr.aria-label]="'ยืนยันการลบออเดอร์ของ ' + o.name"
+          >
+            <p class="text-sm font-semibold">ยืนยันลบออเดอร์ของ {{ o.name }}?</p>
+            <p class="mt-1 text-xs text-[#59635C]">การลบนี้ไม่สามารถกู้คืนได้</p>
+            <div class="mt-2 flex gap-2">
+              <button
+                type="button"
+                class="btn btn-error min-h-11 flex-1"
+                [disabled]="deletingOrderId !== null"
+                (click)="deleteOrder(o)"
+              >
+                {{ deletingOrderId === o.id ? 'กำลังลบ...' : 'ยืนยันลบ' }}
+              </button>
+              <button type="button" class="btn btn-ghost min-h-11 flex-1" [disabled]="deletingOrderId !== null" (click)="cancelDelete()">
+                ยกเลิก
+              </button>
+            </div>
+            <p *ngIf="deleteError" role="alert" class="mt-2 text-sm font-medium text-error">{{ deleteError }}</p>
+          </div>
         </li>
       </ul>
       <p *ngIf="editError" role="alert" class="alert alert-error mt-2 text-sm">{{ editError }}</p>
+      <p *ngIf="deleteError && confirmDeleteOrderId === null" role="alert" class="alert alert-error mt-2 text-sm">{{ deleteError }}</p>
       <p class="py-6 text-center text-sm text-[#59635C]" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
       <p class="mt-2 text-xs text-[#59635C]">แตะตำแหน่งบนแผนที่เพื่อปักจุดส่ง</p>
     </section>
