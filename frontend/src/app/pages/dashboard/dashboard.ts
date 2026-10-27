@@ -10,6 +10,7 @@ import { createMap, esc, pinIcon } from '../../utils/map-utils';
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule],
+  styleUrl: './dashboard.css',
   templateUrl: './dashboard.html'
 })
 export class Dashboard implements AfterViewInit, OnDestroy {
@@ -59,7 +60,7 @@ export class Dashboard implements AfterViewInit, OnDestroy {
           L.marker([o.lat, o.lng], { icon: pinIcon(String(o.boxes), '#ea580c') })
             .bindPopup(`${esc(o.name)} · ${o.boxes} กล่อง`).addTo(this.pins);
         });
-        if (pts.length > 1) this.map.fitBounds(pts, { padding: [30, 30] });
+        if (pts.length > 1) this.map.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
         this.cdr.detectChanges();
       },
       error: () => {

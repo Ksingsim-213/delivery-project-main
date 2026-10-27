@@ -148,9 +148,9 @@ export class Riders implements AfterViewInit, OnDestroy {
     }
 
     if (points.length > 1) {
-      this.map.fitBounds(points, { padding: [32, 32] });
+      this.map.fitBounds(points, { padding: [40, 40], maxZoom: 15 });
     } else if (points.length === 1) {
-      this.map.setView(points[0], 12);
+      this.map.setView(points[0], 14);
     }
   }
 
