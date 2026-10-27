@@ -12,7 +12,7 @@
 
     <section class="rounded-xl border border-[#D2D7D1] bg-white p-3">
       <h2 class="font-bold">{{ editId === null ? 'เพิ่มลูกค้าใหม่' : 'แก้ไขข้อมูลลูกค้า' }}</h2>
-      <p class="mt-1 text-xs text-[#59635C]">เลือก “ปักบนแผนที่” แล้วแตะตำแหน่งบ้าน</p>
+      <p class="mt-1 text-xs text-[#59635C]">ปักตำแหน่งบนแผนที่แล้วลากหมุดเพื่อปรับจุดได้ หรือแก้พิกัดในช่องนี้</p>
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">ชื่อลูกค้า</legend>
@@ -27,7 +27,7 @@
       <fieldset class="fieldset">
         <legend class="fieldset-legend">พิกัด (ละติจูด, ลองจิจูด)</legend>
         <div class="join w-full">
-          <input id="cpos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
+          <input id="cpos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" (ngModelChange)="coordinatesChanged($event)" name="pos" placeholder="13.7563, 100.5018" />
           <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="pickOnMap()">ปักบนแผนที่</button>
         </div>
       </fieldset>

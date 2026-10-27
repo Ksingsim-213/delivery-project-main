@@ -12,7 +12,7 @@
 
     <section class="rounded-xl border border-[#D2D7D1] bg-white p-3">
       <h2 class="font-bold">เพิ่มออเดอร์</h2>
-      <p class="mt-1 text-xs text-[#59635C]">ค้นหาเบอร์ลูกค้าก่อน แล้วระบุตำแหน่งส่ง</p>
+      <p class="mt-1 text-xs text-[#59635C]">ค้นหาเบอร์ลูกค้าก่อน แล้วระบุตำแหน่งส่ง ลากหมุดเพื่อปรับจุดได้</p>
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">เบอร์โทร</legend>
@@ -31,7 +31,7 @@
       <fieldset class="fieldset">
         <legend class="fieldset-legend">พิกัดส่ง (ละติจูด, ลองจิจูด)</legend>
         <div class="join w-full">
-          <input id="pos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
+          <input id="pos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" (ngModelChange)="coordinatesChanged($event)" name="pos" placeholder="13.7563, 100.5018" />
           <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="pickOnMap()">ปักบนแผนที่</button>
         </div>
       </fieldset>

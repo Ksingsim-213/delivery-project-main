@@ -53,8 +53,7 @@ export class Orders implements AfterViewInit, OnDestroy {
       this.picking = false;
       this.error = '';
       this.pos = formatCoordinates(e.latlng);
-      this.temp?.remove();
-      this.temp = L.marker(e.latlng).addTo(this.map);
+      this.setTemp(e.latlng);
       this.cdr.detectChanges();
     });
     this.loadOrders();
@@ -85,6 +84,8 @@ export class Orders implements AfterViewInit, OnDestroy {
           this.name = c.name;
           this.pos = `${c.lat}, ${c.lng}`;
           this.found = 'พบลูกค้าเก่า: ' + c.name;
+          this.setTemp(L.latLng(c.lat, c.lng));
+          this.map.setView([c.lat, c.lng], 15);
         } else {
           this.found = 'ไม่พบเบอร์นี้ กรอกข้อมูลลูกค้าใหม่ได้เลย';
         }
@@ -97,6 +98,32 @@ export class Orders implements AfterViewInit, OnDestroy {
   pickOnMap(): void {
     this.picking = true;
     this.error = 'คลิกบนแผนที่เพื่อปักพิกัดบ้านลูกค้า';
+  }
+
+  coordinatesChanged(value: string): void {
+    const coordinates = parseCoordinates(value);
+    if (!coordinates) return;
+
+    if (this.temp) {
+      this.temp.setLatLng(coordinates);
+    } else {
+      this.setTemp(L.latLng(coordinates.lat, coordinates.lng));
+    }
+  }
+
+  private setTemp(ll: L.LatLng): void {
+    this.temp?.remove();
+    this.temp = L.marker(ll, {
+      icon: pinIcon('ย้าย', '#A43E32'),
+      draggable: true,
+      title: 'ลากหมุดเพื่อย้ายจุดส่ง',
+    })
+      .on('dragend', () => {
+        if (!this.temp) return;
+        this.pos = formatCoordinates(this.temp.getLatLng());
+        this.cdr.detectChanges();
+      })
+      .addTo(this.map);
   }
 
   editOrder(order: Order): void {

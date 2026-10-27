@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 import { DeliveryData } from '../../service/delivery-data';
 import { Customer } from '../../models/delivery.model';
 import { formatCoordinates, parseCoordinates } from '../../utils/coordinates';
-import { createMap, esc } from '../../utils/map-utils';
+import { createMap, esc, pinIcon } from '../../utils/map-utils';
 
 @Component({
   selector: 'app-customers',
@@ -72,6 +72,17 @@ export class Customers implements AfterViewInit, OnDestroy {
   pickOnMap(): void {
     this.picking = true;
     this.error = 'คลิกบนแผนที่เพื่อปักพิกัดบ้าน';
+  }
+
+  coordinatesChanged(value: string): void {
+    const coordinates = parseCoordinates(value);
+    if (!coordinates) return;
+
+    if (this.temp) {
+      this.temp.setLatLng(coordinates);
+    } else {
+      this.setTemp(L.latLng(coordinates.lat, coordinates.lng));
+    }
   }
 
   edit(c: Customer): void {
@@ -154,6 +165,16 @@ export class Customers implements AfterViewInit, OnDestroy {
 
   private setTemp(ll: L.LatLng): void {
     this.temp?.remove();
-    this.temp = L.marker(ll).addTo(this.map);
+    this.temp = L.marker(ll, {
+      icon: pinIcon('ย้าย', '#A43E32'),
+      draggable: true,
+      title: 'ลากหมุดเพื่อย้ายตำแหน่งบ้าน',
+    })
+      .on('dragend', () => {
+        if (!this.temp) return;
+        this.pos = formatCoordinates(this.temp.getLatLng());
+        this.cdr.detectChanges();
+      })
+      .addTo(this.map);
   }
 }
