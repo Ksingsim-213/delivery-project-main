@@ -1,15 +1,15 @@
-<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
-  <header class="flex flex-wrap items-end justify-between gap-4 border-b border-base-300 pb-4">
+<div class="mx-auto flex max-w-7xl flex-col gap-5 p-3 pb-10 sm:gap-6 sm:p-5 sm:pb-12">
+  <header class="flex flex-col gap-5 rounded-box border border-base-300 bg-base-100 p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-5">
     <div>
-      <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">จัดส่ง</p>
-      <h1 class="mt-1 text-2xl font-bold">จัดเส้นทางจัดส่ง</h1>
-      <p class="mt-1 text-sm opacity-60">ภาพรวมเส้นทางของไรเดอร์ทุกคนและใบงานรายคัน</p>
+      <p class="badge badge-primary badge-soft">จัดส่งวันนี้</p>
+      <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">จัดเส้นทางจัดส่ง</h1>
+      <p class="mt-1 text-sm opacity-70">เลือกไรเดอร์เพื่อดูเส้นทางและลำดับงานเฉพาะคน</p>
     </div>
-    <div class="flex items-end gap-2">
-      <label class="fieldset">
+    <div class="grid grid-cols-2 items-end gap-2 sm:flex">
+      <label class="fieldset col-span-2 sm:col-span-1">
         <span class="fieldset-legend">จำนวนไรเดอร์</span>
         <input
-          class="input input-bordered w-28"
+          class="input input-bordered min-h-12 w-full sm:w-28"
           type="number"
           min="1"
           max="10"
@@ -18,67 +18,68 @@
           aria-label="จำนวนไรเดอร์"
         />
       </label>
-      <button type="button" class="btn btn-primary" (click)="loadRoutePlan()" [disabled]="loading">
+      <button type="button" class="btn btn-primary min-h-12" (click)="loadRoutePlan()" [disabled]="loading">
         <span class="loading loading-spinner loading-sm" *ngIf="loading"></span>
         {{ loading ? 'กำลังจัดเส้นทาง...' : 'จัดเส้นทาง' }}
       </button>
-      <a routerLink="/orders" class="btn btn-outline">จัดการออเดอร์</a>
+      <a routerLink="/orders" class="btn btn-outline col-span-2 min-h-12 sm:col-span-1">จัดการออเดอร์</a>
     </div>
   </header>
 
-  <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
+  <div *ngIf="error" role="alert" class="alert alert-error alert-soft shadow-sm">{{ error }}</div>
 
   <ng-container *ngIf="plan as routePlan">
-    <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
-      <div class="stat">
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
         <div class="stat-title">{{ selectedDriver ? 'ออเดอร์ของไรเดอร์นี้' : 'ออเดอร์ที่จัดส่ง' }}</div>
-        <div class="stat-value">{{ selectedDriver?.sequence?.length ?? routePlan.total_orders }}</div>
+        <div class="stat-value text-3xl">{{ selectedDriver?.sequence?.length ?? routePlan.total_orders }}</div>
       </div>
-      <div class="stat">
+      <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
         <div class="stat-title">{{ selectedDriver ? 'กล่องของไรเดอร์นี้' : 'กล่องทั้งหมด' }}</div>
-        <div class="stat-value">{{ selectedDriver?.total_boxes ?? routePlan.total_boxes }}</div>
+        <div class="stat-value text-3xl">{{ selectedDriver?.total_boxes ?? routePlan.total_boxes }}</div>
       </div>
-      <div class="stat">
+      <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
         <div class="stat-title">{{ selectedDriver ? 'ไรเดอร์ที่เลือก' : 'ไรเดอร์ที่มีงาน' }}</div>
-        <div class="stat-value text-primary">{{ selectedDriver ? 1 : routePlan.drivers.length }}</div>
+        <div class="stat-value text-3xl text-primary">{{ selectedDriver ? 1 : routePlan.drivers.length }}</div>
       </div>
-      <div class="stat">
+      <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
         <div class="stat-title">{{ selectedDriver ? 'ระยะทางของไรเดอร์นี้' : 'ระยะทางรวมโดยประมาณ' }}</div>
-        <div class="stat-value">{{ selectedDriver?.total_distance_km ?? routePlan.total_distance_km }} <span class="text-lg">กม.</span></div>
+        <div class="stat-value text-3xl">{{ selectedDriver?.total_distance_km ?? routePlan.total_distance_km }} <span class="text-base">กม.</span></div>
       </div>
-      <div class="stat">
+      <div class="stat col-span-2 rounded-box border border-base-300 bg-base-100 shadow-sm md:col-span-1">
         <div class="stat-title">{{ selectedDriver ? 'เวลาเดินทางของไรเดอร์นี้' : 'เวลาเดินทางรวมโดยประมาณ' }}</div>
-        <div class="stat-value text-primary">{{ formatDuration(selectedDriver?.total_duration_minutes ?? routePlan.total_duration_minutes) }}</div>
+        <div class="stat-value text-3xl text-primary">{{ formatDuration(selectedDriver?.total_duration_minutes ?? routePlan.total_duration_minutes) }}</div>
       </div>
     </div>
   </ng-container>
 
   <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-    <div>
-      <div #mapEl class="relative z-0 h-[380px] rounded-box border border-base-300 lg:h-[540px]"></div>
-      <p class="mt-2 text-sm opacity-60">
-        เวลาเดินทางคำนวณจากเส้นทางถนนด้วย OSRM ไม่รวมสภาพจราจรสดและเวลาหยุดส่ง · เส้นเชื่อมบนแผนที่เป็นเส้นตรง · กดหมุดพิกัดซ้ำเพื่อดูออเดอร์ทั้งหมด
-      </p>
-    </div>
-
-    <section class="card card-border bg-base-100" *ngIf="plan as routePlan">
-      <div class="card-body gap-3">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="card-title">{{ selectedDriver ? 'งานของไรเดอร์ ' + selectedDriver.driver_id : 'เลือกไรเดอร์' }}</h2>
+    <section class="card order-1 card-border bg-base-100 shadow-sm lg:order-2" *ngIf="plan as routePlan">
+      <div class="card-body gap-3 p-4 sm:p-5">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="card-title">{{ selectedDriver ? 'งานของไรเดอร์ ' + selectedDriver.driver_id : 'เลือกไรเดอร์' }}</h2>
+            <p class="mt-1 text-sm opacity-60">
+              {{ selectedDriver ? 'แสดงเฉพาะงานของไรเดอร์ที่เลือก' : 'เลือกชื่อไรเดอร์เพื่อดูงานและเส้นทาง' }}
+            </p>
+          </div>
           <button
             *ngIf="selectedDriver"
             type="button"
-            class="btn btn-ghost btn-sm"
+            class="btn btn-ghost min-h-11 shrink-0"
             (click)="showAllDrivers()"
           >
-            ดูไรเดอร์ทั้งหมด
+            ดูทั้งหมด
           </button>
         </div>
-        <p class="text-sm opacity-60" *ngIf="routePlan.drivers.length === 0">ยังไม่มีออเดอร์ที่รอจัดส่ง</p>
+
+        <p class="rounded-box bg-base-200 p-4 text-center text-sm opacity-70" *ngIf="routePlan.drivers.length === 0">
+          ยังไม่มีออเดอร์ที่รอจัดส่ง
+        </p>
 
         <ng-container *ngFor="let driver of visibleDrivers">
           <article
-            class="rounded-box border p-3 transition"
+            class="rounded-box border p-4 transition-colors"
             [class.border-primary]="selectedDriverId === driver.driver_id"
             [class.bg-primary]="selectedDriverId === driver.driver_id"
             [class.bg-opacity-5]="selectedDriverId === driver.driver_id"
@@ -86,23 +87,31 @@
           >
             <button
               type="button"
-              class="w-full text-left"
+              class="min-h-12 w-full rounded-box text-left outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               [attr.aria-pressed]="selectedDriverId === driver.driver_id"
               (click)="selectDriver(driver.driver_id)"
             >
               <span class="flex items-center justify-between gap-2">
                 <span class="flex items-center gap-2 font-semibold">
-                  <span class="h-3 w-3 rounded-full" [style.backgroundColor]="colorForDriver(driver.driver_id)"></span>
+                  <span
+                    class="h-3 w-3 shrink-0 rounded-full"
+                    [style.backgroundColor]="colorForDriver(driver.driver_id)"
+                    aria-hidden="true"
+                  ></span>
                   ไรเดอร์ {{ driver.driver_id }}
                 </span>
                 <span class="badge badge-primary badge-soft">{{ driver.total_boxes }} กล่อง</span>
               </span>
-              <span class="mt-1 block text-sm opacity-60">
-                {{ driver.sequence.length }} จุดส่ง · {{ driver.total_distance_km }} กม. · ประมาณ {{ formatDuration(driver.total_duration_minutes) }}
+              <span class="mt-2 block text-sm opacity-70">
+                {{ driver.sequence.length }} จุดส่ง
+                <span aria-hidden="true">·</span>
+                {{ driver.total_distance_km }} กม.
+                <span aria-hidden="true">·</span>
+                {{ formatDuration(driver.total_duration_minutes) }}
               </span>
             </button>
             <a
-              class="btn btn-primary btn-sm mt-3 w-full"
+              class="btn btn-primary mt-3 min-h-11 w-full"
               [routerLink]="['/riders/work', driver.driver_id]"
               [queryParams]="{ drivers: driverCount }"
             >
@@ -111,20 +120,33 @@
           </article>
         </ng-container>
 
-        <div *ngIf="selectedDriver as driver" class="divider my-1">ลำดับจุดส่ง</div>
-        <ol *ngIf="selectedDriver as driver" class="list">
-          <li class="list-row items-start gap-3" *ngFor="let stop of driver.sequence; let i = index">
-            <span class="badge badge-neutral badge-sm mt-1">{{ i + 1 }}</span>
-            <div class="list-col-grow min-w-0">
-              <div class="truncate font-medium">{{ stop.customer_name }}</div>
-              <div class="text-xs opacity-60">{{ stop.customer_phone }}</div>
-              <div class="mt-1 text-xs opacity-70">
-                {{ stop.quantity }} กล่อง · จากจุดก่อนหน้า {{ stop.distance_from_previous_km }} กม. · ใช้เวลาประมาณ {{ formatDuration(stop.duration_from_previous_minutes) }}
+        <ng-container *ngIf="selectedDriver as driver">
+          <div class="divider my-1">ลำดับจุดส่ง</div>
+          <ol class="flex flex-col gap-2">
+            <li
+              class="flex min-w-0 items-start gap-3 rounded-box border border-base-300 p-3"
+              *ngFor="let stop of driver.sequence; let i = index"
+            >
+              <span class="badge badge-neutral mt-0.5 shrink-0">{{ i + 1 }}</span>
+              <div class="min-w-0 flex-1">
+                <div class="break-words font-medium">{{ stop.customer_name }}</div>
+                <a class="link link-hover text-sm" [href]="'tel:' + stop.customer_phone">{{ stop.customer_phone }}</a>
+                <div class="mt-1 text-xs leading-relaxed opacity-70">
+                  {{ stop.quantity }} กล่อง · {{ stop.distance_from_previous_km }} กม. จากจุดก่อนหน้า ·
+                  {{ formatDuration(stop.duration_from_previous_minutes) }}
+                </div>
               </div>
-            </div>
-          </li>
-        </ol>
+            </li>
+          </ol>
+        </ng-container>
       </div>
     </section>
+
+    <div class="order-2 min-w-0 lg:order-1">
+      <div #mapEl class="relative z-0 h-[340px] rounded-box border border-base-300 shadow-sm sm:h-[420px] lg:h-[560px]"></div>
+      <p class="mt-2 px-1 text-xs leading-relaxed opacity-60 sm:text-sm">
+        เวลาเดินทางคำนวณจากเส้นทางถนนด้วย OSRM ไม่รวมสภาพจราจรสดและเวลาหยุดส่ง · เส้นเชื่อมบนแผนที่เป็นเส้นตรง · กดหมุดพิกัดซ้ำเพื่อดูออเดอร์ทั้งหมด
+      </p>
+    </div>
   </div>
 </div>
