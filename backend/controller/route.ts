@@ -4,8 +4,8 @@ import { conn } from "../dbconnect";
 export const router = express.Router();
 
 const RESTAURANT = {
-  lat: 16.245,
-  lng: 103.25,
+  lat: 16.25074917,
+  lng: 103.25005929,
   name: "ร้านข้าวกล่องเดลิเวอรี",
 };
 

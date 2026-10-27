@@ -53,7 +53,7 @@ export interface RoutePlan {
   total_duration_minutes: number;
 }
 
-export const DEPOT: [number, number] = [16.245, 103.25];
+export const DEPOT: [number, number] = [16.25074917, 103.25005929];
 export const CAPACITY = 10;
 
 export const ROUTE_STYLES = [
