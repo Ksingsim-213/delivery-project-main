@@ -31,24 +31,24 @@
   <ng-container *ngIf="plan as routePlan">
     <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
       <div class="stat">
-        <div class="stat-title">ออเดอร์ที่จัดส่ง</div>
-        <div class="stat-value">{{ routePlan.total_orders }}</div>
+        <div class="stat-title">{{ selectedDriver ? 'ออเดอร์ของไรเดอร์นี้' : 'ออเดอร์ที่จัดส่ง' }}</div>
+        <div class="stat-value">{{ selectedDriver?.sequence?.length ?? routePlan.total_orders }}</div>
       </div>
       <div class="stat">
-        <div class="stat-title">กล่องทั้งหมด</div>
-        <div class="stat-value">{{ routePlan.total_boxes }}</div>
+        <div class="stat-title">{{ selectedDriver ? 'กล่องของไรเดอร์นี้' : 'กล่องทั้งหมด' }}</div>
+        <div class="stat-value">{{ selectedDriver?.total_boxes ?? routePlan.total_boxes }}</div>
       </div>
       <div class="stat">
-        <div class="stat-title">ไรเดอร์ที่มีงาน</div>
-        <div class="stat-value text-primary">{{ routePlan.drivers.length }}</div>
+        <div class="stat-title">{{ selectedDriver ? 'ไรเดอร์ที่เลือก' : 'ไรเดอร์ที่มีงาน' }}</div>
+        <div class="stat-value text-primary">{{ selectedDriver ? 1 : routePlan.drivers.length }}</div>
       </div>
       <div class="stat">
-        <div class="stat-title">ระยะทางรวมโดยประมาณ</div>
-        <div class="stat-value">{{ routePlan.total_distance_km }} <span class="text-lg">กม.</span></div>
+        <div class="stat-title">{{ selectedDriver ? 'ระยะทางของไรเดอร์นี้' : 'ระยะทางรวมโดยประมาณ' }}</div>
+        <div class="stat-value">{{ selectedDriver?.total_distance_km ?? routePlan.total_distance_km }} <span class="text-lg">กม.</span></div>
       </div>
       <div class="stat">
-        <div class="stat-title">เวลาเดินทางรวมโดยประมาณ</div>
-        <div class="stat-value text-primary">{{ formatDuration(routePlan.total_duration_minutes) }}</div>
+        <div class="stat-title">{{ selectedDriver ? 'เวลาเดินทางของไรเดอร์นี้' : 'เวลาเดินทางรวมโดยประมาณ' }}</div>
+        <div class="stat-value text-primary">{{ formatDuration(selectedDriver?.total_duration_minutes ?? routePlan.total_duration_minutes) }}</div>
       </div>
     </div>
   </ng-container>
@@ -63,10 +63,20 @@
 
     <section class="card card-border bg-base-100" *ngIf="plan as routePlan">
       <div class="card-body gap-3">
-        <h2 class="card-title">งานของไรเดอร์</h2>
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">{{ selectedDriver ? 'งานของไรเดอร์ ' + selectedDriver.driver_id : 'เลือกไรเดอร์' }}</h2>
+          <button
+            *ngIf="selectedDriver"
+            type="button"
+            class="btn btn-ghost btn-sm"
+            (click)="showAllDrivers()"
+          >
+            ดูไรเดอร์ทั้งหมด
+          </button>
+        </div>
         <p class="text-sm opacity-60" *ngIf="routePlan.drivers.length === 0">ยังไม่มีออเดอร์ที่รอจัดส่ง</p>
 
-        <ng-container *ngFor="let driver of routePlan.drivers">
+        <ng-container *ngFor="let driver of visibleDrivers">
           <article
             class="rounded-box border p-3 transition"
             [class.border-primary]="selectedDriverId === driver.driver_id"

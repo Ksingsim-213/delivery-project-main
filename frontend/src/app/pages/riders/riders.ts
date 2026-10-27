@@ -34,6 +34,10 @@ export class Riders implements AfterViewInit, OnDestroy {
     return this.plan?.drivers.find((driver) => driver.driver_id === this.selectedDriverId);
   }
 
+  get visibleDrivers(): DriverRoute[] {
+    return this.selectedDriver ? [this.selectedDriver] : this.plan?.drivers ?? [];
+  }
+
   ngAfterViewInit(): void {
     this.map = createMap(this.mapEl.nativeElement);
     this.routeLayers.addTo(this.map);
@@ -55,7 +59,7 @@ export class Riders implements AfterViewInit, OnDestroy {
     this.data.getRoutePlan(this.driverCount).subscribe({
       next: (plan) => {
         this.plan = plan;
-        this.selectedDriverId = plan.drivers[0]?.driver_id ?? null;
+        this.selectedDriverId = null;
         this.loading = false;
         this.updateMap();
         this.cdr.detectChanges();
@@ -77,6 +81,11 @@ export class Riders implements AfterViewInit, OnDestroy {
     this.updateMap();
   }
 
+  showAllDrivers(): void {
+    this.selectedDriverId = null;
+    this.updateMap();
+  }
+
   private updateMap(): void {
     if (!this.map) return;
 
@@ -95,7 +104,7 @@ export class Riders implements AfterViewInit, OnDestroy {
         Array<{ driverId: number; color: string; stop: DriverRoute['sequence'][number]; sequenceNumber: number }>
       >();
 
-      for (const driver of this.plan.drivers) {
+      for (const driver of this.visibleDrivers) {
         const routePoints: L.LatLngTuple[] = [depot];
         const color = this.colorFor(driver.driver_id);
 
@@ -111,11 +120,10 @@ export class Riders implements AfterViewInit, OnDestroy {
 
         if (driver.sequence.length > 0) {
           routePoints.push(depot);
-          const isSelected = driver.driver_id === this.selectedDriverId;
           L.polyline(routePoints, {
             color,
-            weight: isSelected ? 5 : 4,
-            opacity: this.selectedDriverId === null || isSelected ? 0.85 : 0.55,
+            weight: 5,
+            opacity: 0.85,
           }).addTo(this.routeLayers);
         }
       }
