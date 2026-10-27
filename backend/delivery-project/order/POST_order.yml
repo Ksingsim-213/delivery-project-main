@@ -1,0 +1,22 @@
+info:
+  name: POST_order
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/order"
+  body:
+    type: json
+    data: |-
+      [
+        { "customer_id": 1, "quantity": 2 },
+        { "customer_id": 20, "quantity": 3 }
+      ]
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

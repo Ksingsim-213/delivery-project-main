@@ -1,0 +1,6 @@
+/* 1. I-import ang Tailwind CSS at ang DaisyUI plugin */
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* 2. I-import ang iba pang external CSS files sa ibaba */
+@import "leaflet/dist/leaflet.css";

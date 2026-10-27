@@ -1,0 +1,86 @@
+<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
+  <header class="flex items-end justify-between border-b border-base-300 pb-4">
+    <div>
+      <h2 class="text-2xl font-bold">ออเดอร์วันนี้</h2>
+      <p class="mt-1 text-sm opacity-60">{{ orders.length }} รายการ · {{ totalBoxes }} กล่อง</p>
+    </div>
+  </header>
+
+  <div class="grid items-start gap-5 lg:grid-cols-[360px_1fr]">
+    <div class="flex flex-col gap-4">
+      <div class="card card-border bg-base-100">
+        <div class="card-body gap-1">
+          <h3 class="card-title">เพิ่มออเดอร์</h3>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">เบอร์โทร (ลูกค้าเก่าพิมพ์แล้วข้อมูลขึ้นเอง)</legend>
+            <div class="join w-full">
+              <input id="phone" class="input join-item w-full" [(ngModel)]="phone" name="phone" inputmode="tel" maxlength="10" placeholder="0812345678" />
+              <button type="button" class="btn btn-primary btn-soft join-item" (click)="findCustomer()">ค้นหา</button>
+            </div>
+            <p class="label" *ngIf="found">{{ found }}</p>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">ชื่อลูกค้า</legend>
+            <input id="name" class="input w-full" [(ngModel)]="name" name="name" />
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">พิกัดบ้าน (ละติจูด, ลองจิจูด)</legend>
+            <div class="join w-full">
+              <input id="pos" class="input join-item w-full" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
+              <button type="button" class="btn btn-primary btn-soft join-item" (click)="pickOnMap()">ปักบนแผนที่</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">จำนวนกล่อง</legend>
+            <input id="boxes" class="input w-full" type="number" min="1" step="1" [(ngModel)]="boxes" name="boxes" />
+          </fieldset>
+
+          <div *ngIf="error" role="alert" class="alert alert-soft text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
+          <button type="button" class="btn btn-primary mt-2 w-full" (click)="save()">บันทึกออเดอร์</button>
+        </div>
+      </div>
+
+      <div class="card card-border bg-base-100">
+        <div class="card-body gap-1">
+          <h3 class="card-title">รายการออเดอร์</h3>
+          <ul class="list">
+            <li class="list-row items-center gap-2" *ngFor="let o of orders">
+              <div class="list-col-grow min-w-0">
+                <div class="truncate">{{ o.name }}</div>
+                <div class="text-xs opacity-60">{{ o.phone }}</div>
+              </div>
+              <ng-container *ngIf="editingOrderId === o.id; else orderQuantity">
+                <input
+                  class="input input-bordered input-sm w-20"
+                  type="number"
+                  min="1"
+                  step="1"
+                  [(ngModel)]="editBoxes"
+                  [name]="'editBoxes-' + o.id"
+                  [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
+                />
+                <button type="button" class="btn btn-primary btn-sm" (click)="saveEdit()">บันทึก</button>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="cancelEdit()">ยกเลิก</button>
+              </ng-container>
+              <ng-template #orderQuantity>
+                <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
+                <button type="button" class="btn btn-outline btn-sm" (click)="editOrder(o)">แก้ไข</button>
+              </ng-template>
+            </li>
+          </ul>
+          <p *ngIf="editError" role="alert" class="text-sm text-error">{{ editError }}</p>
+          <p class="py-4 text-center opacity-50" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div #mapEl class="rounded-box relative z-0 h-[380px] border border-base-300 lg:h-[540px]"></div>
+      <p class="mt-2 text-sm opacity-60">ตัวเลขบนหมุดคือจำนวนกล่องของออเดอร์นั้น</p>
+    </div>
+  </div>
+</div>
