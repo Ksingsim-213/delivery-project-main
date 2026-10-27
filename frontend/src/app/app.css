@@ -1,0 +1,43 @@
+.owner-nav-link {
+  display: flex;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 0.65rem;
+  padding: 0.65rem 1rem;
+  color: #465149;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.owner-nav-link:hover {
+  background: #e7eae5;
+  color: #1c2420;
+}
+
+.owner-nav-link:focus-visible {
+  outline: 2px solid #315b49;
+  outline-offset: 2px;
+}
+
+.owner-nav-active,
+.owner-nav-active:hover {
+  background: #dce7df;
+  color: #234634;
+}
+
+.rider-shell {
+  display: block !important;
+  width: 100% !important;
+  max-width: 48rem !important;
+  margin: 0 auto;
+  padding: 0.75rem 0.75rem calc(8rem + env(safe-area-inset-bottom));
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+@media (min-width: 768px) {
+  .owner-nav-link {
+    width: 100%;
+  }
+}

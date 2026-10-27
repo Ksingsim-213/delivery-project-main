@@ -58,6 +58,7 @@ type StopRow = {
 type DeliveryStop = {
   order_id: number;
   customer_id: number;
+  status: string | null;
   customer_name: string;
   customer_phone: string;
   quantity: number;
@@ -74,6 +75,7 @@ type DriverRoute = {
   sequence: Array<{
     order_id: number;
     customer_id: number;
+    status: string | null;
     customer_name: string;
     customer_phone: string;
     quantity: number;
@@ -184,6 +186,7 @@ const buildRouteSequence = (stops: DeliveryStop[]) => {
     sequence.push({
       order_id: nextStop.order_id,
       customer_id: nextStop.customer_id,
+      status: nextStop.status,
       customer_name: nextStop.customer_name,
       customer_phone: nextStop.customer_phone,
       quantity: nextStop.quantity,
@@ -247,6 +250,7 @@ const buildDriverAssignments = (orders: StopRow[], driverCountInput: number) => 
     .map((order) => ({
       order_id: Number(order.order_id),
       customer_id: Number(order.customer_id),
+      status: order.status ?? null,
       customer_name: String(order.customer_name),
       customer_phone: String(order.customer_phone),
       quantity: Math.max(1, toNumber(order.quantity, 0)),

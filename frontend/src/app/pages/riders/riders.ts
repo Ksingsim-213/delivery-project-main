@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import * as L from 'leaflet';
-import { DriverRoute, RoutePlan } from '../../models/delivery.model';
+import { DriverRoute, ROUTE_STYLES, RoutePlan } from '../../models/delivery.model';
 import { DeliveryData } from '../../service/delivery-data';
 import { createMap, esc, pinIcon } from '../../utils/map-utils';
 import { formatDuration } from '../../utils/format-duration';
@@ -26,7 +26,6 @@ export class Riders implements AfterViewInit, OnDestroy {
 
   private map!: L.Map;
   private routeLayers = L.layerGroup();
-  private readonly routeColors = ['#dc2626', '#16a34a', '#2563eb', '#ea580c', '#9333ea'];
 
   constructor(private data: DeliveryData, private cdr: ChangeDetectorRef) {}
 
@@ -106,7 +105,7 @@ export class Riders implements AfterViewInit, OnDestroy {
 
       for (const driver of this.visibleDrivers) {
         const routePoints: L.LatLngTuple[] = [depot];
-        const color = this.colorFor(driver.driver_id);
+        const routeStyle = this.routeStyleForDriver(driver.driver_id);
 
         driver.sequence.forEach((stop, index) => {
           const position: L.LatLngTuple = [stop.lat, stop.lng];
@@ -114,14 +113,15 @@ export class Riders implements AfterViewInit, OnDestroy {
           points.push(position);
           const key = `${stop.lat},${stop.lng}`;
           const groupedStops = stopsByPosition.get(key) ?? [];
-          groupedStops.push({ driverId: driver.driver_id, color, stop, sequenceNumber: index + 1 });
+          groupedStops.push({ driverId: driver.driver_id, color: routeStyle.color, stop, sequenceNumber: index + 1 });
           stopsByPosition.set(key, groupedStops);
         });
 
         if (driver.sequence.length > 0) {
           routePoints.push(depot);
           L.polyline(routePoints, {
-            color,
+            color: routeStyle.color,
+            dashArray: routeStyle.dashArray,
             weight: 5,
             opacity: 0.85,
           }).addTo(this.routeLayers);
@@ -155,7 +155,11 @@ export class Riders implements AfterViewInit, OnDestroy {
   }
 
   private colorFor(driverId: number): string {
-    return this.routeColors[(driverId - 1) % this.routeColors.length] ?? this.routeColors[0];
+    return this.routeStyleForDriver(driverId).color;
+  }
+
+  routeStyleForDriver(driverId: number): (typeof ROUTE_STYLES)[number] {
+    return ROUTE_STYLES[(driverId - 1) % ROUTE_STYLES.length]!;
   }
 
   colorForDriver(driverId: number): string {

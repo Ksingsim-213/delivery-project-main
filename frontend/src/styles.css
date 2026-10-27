@@ -1,6 +1,150 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+
 /* 1. I-import ang Tailwind CSS at ang DaisyUI plugin */
 @import "tailwindcss";
 @plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #f8f9f7;
+  --color-base-200: #e7eae5;
+  --color-base-300: #d2d7d1;
+  --color-base-content: #1c2420;
+  --color-primary: #315b49;
+  --color-primary-content: #ffffff;
+  --color-secondary: #314d68;
+  --color-secondary-content: #ffffff;
+  --color-accent: #a64b35;
+  --color-accent-content: #ffffff;
+  --color-neutral: #333d36;
+  --color-neutral-content: #ffffff;
+  --color-info: #24577a;
+  --color-info-content: #ffffff;
+  --color-success: #2f6847;
+  --color-success-content: #ffffff;
+  --color-warning: #805d08;
+  --color-warning-content: #ffffff;
+  --color-error: #a32f2b;
+  --color-error-content: #ffffff;
+}
 
 /* 2. I-import ang iba pang external CSS files sa ibaba */
 @import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: "IBM Plex Sans Thai", "Tahoma", sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #eef0ec;
+  color: #1c2420;
+  font-family: "IBM Plex Sans Thai", "Tahoma", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaflet-container {
+  color: #1c2420;
+  font-family: "IBM Plex Sans Thai", "Tahoma", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.owner-map-workspace {
+  display: grid;
+  min-height: calc(100dvh - 10rem);
+  grid-template-rows: minmax(22rem, 55dvh) auto;
+  gap: 0.75rem;
+}
+
+.owner-map-canvas {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 22rem;
+  overflow: hidden;
+  border: 1px solid #d2d7d1;
+  border-radius: 0.85rem;
+  background: #e7eae5;
+}
+
+.owner-side-panel {
+  min-width: 0;
+  overflow: visible;
+  border: 1px solid #d2d7d1;
+  border-radius: 0.85rem;
+  background: #f8f9f7;
+}
+
+.driver-action-dock {
+  position: fixed;
+  z-index: 1100;
+  right: 0.75rem;
+  bottom: 0;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-inline: auto;
+  padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+  border: 1px solid #d2d7d1;
+  border-bottom: 0;
+  border-radius: 1rem 1rem 0 0;
+  background: #f8f9f7;
+  box-shadow: 0 -8px 24px #1c24201a;
+}
+
+@media (min-width: 1024px) {
+  .owner-map-workspace {
+    height: calc(100dvh - 7rem);
+    min-height: 36rem;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .owner-map-canvas {
+    height: 100%;
+  }
+
+  .owner-side-panel {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+}
+
+@media (min-width: 768px) {
+  .driver-action-dock {
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: min(46rem, calc(100vw - 2rem));
+    padding: 0.75rem;
+    border: 1px solid #d2d7d1;
+    border-radius: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

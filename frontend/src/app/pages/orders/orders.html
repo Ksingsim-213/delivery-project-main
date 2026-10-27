@@ -1,95 +1,86 @@
-<div class="mx-auto flex max-w-7xl flex-col gap-5 pb-8 sm:gap-6">
-  <header class="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-5">
-    <div>
-      <p class="text-xs font-bold uppercase tracking-wider text-blue-700">งานจัดส่ง</p>
-      <h1 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">ออเดอร์วันนี้</h1>
-      <p class="mt-1 text-sm text-slate-600">{{ orders.length }} รายการ · {{ totalBoxes }} กล่อง</p>
-    </div>
-  </header>
+<div class="owner-map-workspace">
+  <section class="owner-map-canvas" aria-label="แผนที่ออเดอร์">
+    <div #mapEl class="absolute inset-0"></div>
+  </section>
 
-  <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,390px)]">
-    <div class="order-1 flex min-w-0 flex-col gap-4 xl:order-2">
-      <section class="card card-border bg-base-100 shadow-sm">
-        <div class="card-body gap-2 p-4 sm:p-5">
-          <h3 class="card-title">เพิ่มออเดอร์</h3>
-          <p class="text-sm text-slate-600">เพิ่มข้อมูลลูกค้าและจำนวนกล่องสำหรับจัดส่ง</p>
+  <aside class="owner-side-panel flex flex-col gap-4 p-4">
+    <header>
+      <p class="text-xs font-semibold tracking-wide text-[#59635C]">กระดานปฏิบัติการ</p>
+      <h1 class="mt-1 text-xl font-bold tracking-tight">ออเดอร์วันนี้</h1>
+      <p class="mt-1 text-sm text-[#59635C]">{{ orders.length }} รายการ · {{ totalBoxes }} กล่อง</p>
+    </header>
 
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">เบอร์โทร (ลูกค้าเก่าพิมพ์แล้วข้อมูลขึ้นเอง)</legend>
-            <div class="join w-full">
-              <input id="phone" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="10" placeholder="0812345678" />
-              <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="findCustomer()">ค้นหา</button>
-            </div>
-            <p class="label" *ngIf="found">{{ found }}</p>
-          </fieldset>
+    <section class="rounded-xl border border-[#D2D7D1] bg-white p-3">
+      <h2 class="font-bold">เพิ่มออเดอร์</h2>
+      <p class="mt-1 text-xs text-[#59635C]">ค้นหาเบอร์ลูกค้าก่อน แล้วระบุตำแหน่งส่ง</p>
 
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">ชื่อลูกค้า</legend>
-            <input id="name" class="input input-bordered min-h-11 w-full" [(ngModel)]="name" name="name" autocomplete="name" />
-          </fieldset>
-
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">พิกัดบ้าน (ละติจูด, ลองจิจูด)</legend>
-            <div class="join w-full">
-              <input id="pos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
-              <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="pickOnMap()">ปักบนแผนที่</button>
-            </div>
-          </fieldset>
-
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend">จำนวนกล่อง</legend>
-            <input id="boxes" class="input input-bordered min-h-11 w-full" type="number" min="1" step="1" [(ngModel)]="boxes" name="boxes" />
-          </fieldset>
-
-          <div *ngIf="error" role="alert" class="alert alert-soft text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
-          <button type="button" class="btn btn-primary mt-2 min-h-11 w-full" (click)="save()">บันทึกออเดอร์</button>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">เบอร์โทร</legend>
+        <div class="join w-full">
+          <input id="phone" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="10" placeholder="0812345678" />
+          <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="findCustomer()">ค้นหา</button>
         </div>
-      </section>
+        <p class="label" *ngIf="found">{{ found }}</p>
+      </fieldset>
 
-      <section class="card card-border bg-base-100 shadow-sm">
-        <div class="card-body gap-2 p-4 sm:p-5">
-          <div class="flex items-center justify-between gap-2">
-            <h3 class="card-title">รายการออเดอร์</h3>
-            <span class="badge badge-ghost">{{ orders.length }} รายการ</span>
-          </div>
-          <ul class="list">
-            <li class="list-row items-center gap-3" *ngFor="let o of orders">
-              <div class="list-col-grow min-w-0">
-                <div class="truncate font-semibold">{{ o.name }}</div>
-                <a class="text-sm text-slate-600 hover:text-blue-800" [href]="'tel:' + o.phone">{{ o.phone }}</a>
-              </div>
-              <ng-container *ngIf="editingOrderId === o.id; else orderQuantity">
-                <input
-                  class="input input-bordered min-h-11 w-20"
-                  type="number"
-                  min="1"
-                  step="1"
-                  [(ngModel)]="editBoxes"
-                  [name]="'editBoxes-' + o.id"
-                  [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
-                />
-                <button type="button" class="btn btn-primary min-h-11" (click)="saveEdit()">บันทึก</button>
-                <button type="button" class="btn btn-ghost min-h-11" (click)="cancelEdit()">ยกเลิก</button>
-              </ng-container>
-              <ng-template #orderQuantity>
-                <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
-                <button type="button" class="btn btn-outline min-h-11" (click)="editOrder(o)">แก้ไข</button>
-              </ng-template>
-            </li>
-          </ul>
-          <p *ngIf="editError" role="alert" class="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800">{{ editError }}</p>
-          <p class="rounded-xl bg-slate-50 py-6 text-center text-sm text-slate-600" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">ชื่อลูกค้า</legend>
+        <input id="name" class="input input-bordered min-h-11 w-full" [(ngModel)]="name" name="name" autocomplete="name" />
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">พิกัดส่ง (ละติจูด, ลองจิจูด)</legend>
+        <div class="join w-full">
+          <input id="pos" class="input input-bordered join-item min-h-11 w-full min-w-0" [(ngModel)]="pos" name="pos" placeholder="13.7563, 100.5018" />
+          <button type="button" class="btn btn-primary btn-soft join-item min-h-11 shrink-0" (click)="pickOnMap()">ปักบนแผนที่</button>
         </div>
-      </section>
-    </div>
+      </fieldset>
 
-    <section class="order-2 min-w-0 xl:order-1">
-      <div class="mb-3">
-        <h2 class="text-lg font-bold">แผนที่ออเดอร์</h2>
-        <p class="text-sm text-slate-600">ตรวจสอบตำแหน่งจัดส่งก่อนบันทึก</p>
-      </div>
-      <div #mapEl class="relative z-0 h-[340px] rounded-2xl border border-slate-200 bg-slate-100 shadow-sm sm:h-[440px] xl:sticky xl:top-24 xl:h-[calc(100vh-8rem)] xl:min-h-[520px]"></div>
-      <p class="mt-2 px-1 text-sm text-slate-600">ตัวเลขบนหมุดคือจำนวนกล่องของออเดอร์นั้น</p>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">จำนวนกล่อง</legend>
+        <input id="boxes" class="input input-bordered min-h-11 w-full" type="number" min="1" step="1" [(ngModel)]="boxes" name="boxes" />
+      </fieldset>
+
+      <div *ngIf="error" role="alert" class="alert alert-soft mt-2 text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
+      <button type="button" class="btn btn-primary mt-3 min-h-11 w-full" (click)="save()">บันทึกออเดอร์</button>
     </section>
-  </div>
+
+    <section class="min-h-0 flex-1">
+      <div class="mb-2 flex items-center justify-between gap-2">
+        <h2 class="font-bold">รายการออเดอร์</h2>
+        <span class="badge badge-ghost">{{ orders.length }} รายการ</span>
+      </div>
+      <ul class="divide-y divide-[#E2E5E0]">
+        <li class="flex min-h-14 items-center gap-2 py-2" *ngFor="let o of orders">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold">{{ o.name }}</p>
+            <a class="text-xs text-[#465149] underline-offset-2 hover:underline" [href]="'tel:' + o.phone">{{ o.phone }}</a>
+            <span class="mt-1 block text-xs font-medium text-[#59635C]">
+              {{ o.status === 'done' ? 'ส่งแล้ว' : o.status === 'processing' ? 'กำลังจัดส่ง' : o.status === 'ready' ? 'พร้อมส่ง' : 'รอจัดส่ง' }}
+            </span>
+          </div>
+          <ng-container *ngIf="editingOrderId === o.id; else orderQuantity">
+            <input
+              class="input input-bordered min-h-11 w-16"
+              type="number"
+              min="1"
+              step="1"
+              [(ngModel)]="editBoxes"
+              [name]="'editBoxes-' + o.id"
+              [attr.aria-label]="'จำนวนกล่องของ ' + o.name"
+            />
+            <button type="button" class="btn btn-primary min-h-11 px-2" (click)="saveEdit()">บันทึก</button>
+            <button type="button" class="btn btn-ghost min-h-11 px-2" (click)="cancelEdit()">ยกเลิก</button>
+          </ng-container>
+          <ng-template #orderQuantity>
+            <span class="text-sm font-semibold tabular-nums">{{ o.boxes }} กล่อง</span>
+            <button type="button" class="btn btn-outline min-h-11 shrink-0" (click)="editOrder(o)">แก้ไข</button>
+          </ng-template>
+        </li>
+      </ul>
+      <p *ngIf="editError" role="alert" class="alert alert-error mt-2 text-sm">{{ editError }}</p>
+      <p class="py-6 text-center text-sm text-[#59635C]" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
+      <p class="mt-2 text-xs text-[#59635C]">แตะตำแหน่งบนแผนที่เพื่อปักจุดส่ง</p>
+    </section>
+  </aside>
 </div>
