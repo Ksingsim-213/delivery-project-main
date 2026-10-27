@@ -25,9 +25,13 @@ export class Dashboard implements AfterViewInit, OnDestroy {
 
   constructor(private data: DeliveryData, private cdr: ChangeDetectorRef) {}
 
-  get totalBoxes(): number { return this.orders.reduce((sum, o) => sum + o.boxes, 0); }
+  get activeOrders(): Order[] { return this.orders.filter((order) => order.status !== 'done'); }
+  get deliveredOrders(): Order[] { return this.orders.filter((order) => order.status === 'done'); }
+  get totalBoxes(): number { return this.activeOrders.reduce((sum, order) => sum + order.boxes, 0); }
+  get allBoxes(): number { return this.orders.reduce((sum, order) => sum + order.boxes, 0); }
   get minRiders(): number { return Math.ceil(this.totalBoxes / CAPACITY); }
-  get latest(): Order[] { return [...this.orders].reverse().slice(0, 8); }
+  get latest(): Order[] { return [...this.activeOrders].reverse().slice(0, 8); }
+  get latestDelivered(): Order[] { return [...this.deliveredOrders].reverse().slice(0, 8); }
   readonly capacity = CAPACITY;
 
   ngAfterViewInit(): void {
@@ -50,7 +54,7 @@ export class Dashboard implements AfterViewInit, OnDestroy {
 
         this.pins.clearLayers();
         const pts: L.LatLngTuple[] = [DEPOT];
-        orders.forEach(o => {
+        this.activeOrders.forEach(o => {
           pts.push([o.lat, o.lng]);
           L.marker([o.lat, o.lng], { icon: pinIcon(String(o.boxes), '#ea580c') })
             .bindPopup(`${esc(o.name)} · ${o.boxes} กล่อง`).addTo(this.pins);

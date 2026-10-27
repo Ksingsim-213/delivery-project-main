@@ -79,6 +79,10 @@ export class DeliveryData {
     return this.http.put(`${environment.apiUrl}/customer/${id}`, customer);
   }
 
+  deleteCustomer(id: number): Observable<unknown> {
+    return this.http.delete(`${environment.apiUrl}/customer/${id}`);
+  }
+
   updateOrder(id: number, quantity: number): Observable<unknown> {
     return this.http.put(`${environment.apiUrl}/order/${id}`, { quantity });
   }

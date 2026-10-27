@@ -52,17 +52,57 @@
         aria-label="ค้นหาลูกค้า"
       />
       <ul class="mt-2 divide-y divide-[#E2E5E0]">
-        <li class="flex min-h-14 items-center gap-3 py-2" *ngFor="let c of shown">
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#D2D7D1] bg-white text-sm font-bold">
-            {{ c.name.charAt(0) }}
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold">{{ c.name }}</p>
-            <a class="text-xs text-[#465149] underline-offset-2 hover:underline" [href]="'tel:' + c.phone">{{ c.phone }}</a>
+        <li class="min-w-0 py-2" *ngFor="let c of shown">
+          <div class="flex min-h-14 items-center gap-3">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#D2D7D1] bg-white text-sm font-bold">
+              {{ c.name.charAt(0) }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-semibold">{{ c.name }}</p>
+              <a class="text-xs text-[#465149] underline-offset-2 hover:underline" [href]="'tel:' + c.phone">{{ c.phone }}</a>
+            </div>
+            <div class="flex shrink-0 gap-1">
+              <button type="button" class="btn btn-outline min-h-11 px-2" (click)="edit(c)">แก้ไข</button>
+              <button
+                type="button"
+                class="btn btn-error btn-outline min-h-11 px-2"
+                [attr.aria-label]="'ลบลูกค้า ' + c.name"
+                (click)="confirmDelete(c)"
+              >ลบ</button>
+            </div>
           </div>
-          <button type="button" class="btn btn-outline min-h-11 shrink-0" (click)="edit(c)">แก้ไข</button>
+          <div
+            *ngIf="confirmDeleteCustomerId === c.id"
+            class="mt-2 rounded-lg border border-error/40 bg-base-100 p-3"
+            role="group"
+            [attr.aria-label]="'ยืนยันการลบลูกค้า ' + c.name"
+          >
+            <p class="text-sm font-semibold">ยืนยันลบลูกค้า {{ c.name }}?</p>
+            <p class="mt-1 text-xs text-[#59635C]">ลบได้เฉพาะลูกค้าที่ไม่มีประวัติออเดอร์</p>
+            <div class="mt-2 flex gap-2">
+              <button
+                type="button"
+                class="btn btn-error min-h-11 flex-1"
+                [disabled]="deletingCustomerId !== null"
+                (click)="deleteCustomer(c)"
+              >
+                {{ deletingCustomerId === c.id ? 'กำลังลบ...' : 'ยืนยันลบ' }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost min-h-11 flex-1"
+                [disabled]="deletingCustomerId !== null"
+                (click)="cancelDelete()"
+              >ยกเลิก</button>
+            </div>
+            <p *ngIf="deleteError" role="alert" class="mt-2 text-sm font-medium text-error">{{ deleteError }}</p>
+          </div>
         </li>
       </ul>
+      <p *ngIf="deleteSuccess" role="status" class="mt-2 rounded-lg border border-[#39734A] bg-white px-3 py-2 text-sm text-[#28583A]">
+        {{ deleteSuccess }}
+      </p>
+      <p *ngIf="deleteError && confirmDeleteCustomerId === null" role="alert" class="alert alert-error mt-2 text-sm">{{ deleteError }}</p>
       <p class="py-6 text-center text-sm text-[#59635C]" *ngIf="shown.length === 0">ไม่พบลูกค้า</p>
     </section>
   </aside>

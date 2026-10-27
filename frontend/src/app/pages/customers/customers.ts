@@ -1,4 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
@@ -19,8 +20,12 @@ export class Customers implements AfterViewInit, OnDestroy {
   customers: Customer[] = [];
   keyword = '';
   error = '';
+  deleteError = '';
+  deleteSuccess = '';
   picking = false;
   editId: number | null = null;
+  confirmDeleteCustomerId: number | null = null;
+  deletingCustomerId: number | null = null;
 
   name = '';
   phone = '';
@@ -57,10 +62,7 @@ export class Customers implements AfterViewInit, OnDestroy {
     this.data.getCustomers().subscribe({
       next: (list) => {
         this.customers = list;
-        this.pins.clearLayers();
-        list.forEach(c =>
-          L.circleMarker([c.lat, c.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#ea580c', fillOpacity: 1 })
-            .bindPopup(`${esc(c.name)}<br>${esc(c.phone)}`).addTo(this.pins));
+        this.renderCustomerPins();
         this.cdr.detectChanges();
       },
       error: () => { this.error = 'โหลดรายชื่อลูกค้าไม่สำเร็จ ตรวจว่า backend เปิดอยู่'; this.cdr.detectChanges(); }
@@ -103,6 +105,51 @@ export class Customers implements AfterViewInit, OnDestroy {
       next: () => { this.reset(); this.loadCustomers(); },
       error: () => { this.error = 'บันทึกไม่สำเร็จ (เบอร์นี้อาจมีอยู่แล้ว)'; this.cdr.detectChanges(); }
     });
+  }
+
+  confirmDelete(c: Customer): void {
+    if (c.id === undefined) return;
+    this.confirmDeleteCustomerId = c.id;
+    this.deleteError = '';
+    this.deleteSuccess = '';
+  }
+
+  cancelDelete(): void {
+    this.confirmDeleteCustomerId = null;
+    this.deleteError = '';
+  }
+
+  deleteCustomer(c: Customer): void {
+    if (c.id === undefined || this.deletingCustomerId !== null) return;
+
+    this.deletingCustomerId = c.id;
+    this.deleteError = '';
+    this.data.deleteCustomer(c.id).subscribe({
+      next: () => {
+        this.customers = this.customers.filter((customer) => customer.id !== c.id);
+        this.renderCustomerPins();
+        if (this.editId === c.id) this.reset();
+        this.confirmDeleteCustomerId = null;
+        this.deletingCustomerId = null;
+        this.deleteSuccess = `ลบลูกค้า ${c.name} แล้ว`;
+        this.cdr.detectChanges();
+      },
+      error: (error: unknown) => {
+        this.deletingCustomerId = null;
+        this.deleteError =
+          error instanceof HttpErrorResponse && typeof error.error?.error === 'string'
+            ? error.error.error
+            : 'ลบลูกค้าไม่สำเร็จ กรุณาลองอีกครั้ง';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private renderCustomerPins(): void {
+    this.pins.clearLayers();
+    this.customers.forEach((c) =>
+      L.circleMarker([c.lat, c.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#ea580c', fillOpacity: 1 })
+        .bindPopup(`${esc(c.name)}<br>${esc(c.phone)}`).addTo(this.pins));
   }
 
   private setTemp(ll: L.LatLng): void {

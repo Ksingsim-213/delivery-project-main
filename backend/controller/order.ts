@@ -48,6 +48,7 @@ router.get("/", async (req, res) => {
         customers.lng
       FROM orders
       JOIN customers ON orders.customer_id = customers.id
+      ORDER BY orders.id ASC
     `;
     const [rows] = await conn.query(sql);
     res.status(200).json(rows);

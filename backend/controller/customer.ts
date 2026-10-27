@@ -5,6 +5,7 @@ import {
   isLatitude,
   isLongitude,
   isNonEmptyString,
+  isPositiveInteger,
   isRecord,
   parseFiniteQueryNumber,
 } from "./validation";
@@ -159,15 +160,29 @@ router.put("/:id", async (req, res) => {
 // 4. API ลบลูกค้า (DELETE) - อ้างอิง 09-Delete.md
 router.delete("/:id", async (req, res) => {
   try {
-    let id = req.params.id;
-    const [result] = await conn.query("DELETE FROM customers WHERE id = ?", [id]);
-    const deleteResult = result as any;
-    
-    if (deleteResult.affectedRows === 0) {
+    const customerId = Number(req.params.id);
+    if (!isPositiveInteger(customerId)) {
+      return res.status(400).json({ error: "รหัสลูกค้าต้องเป็นจำนวนเต็มบวก" });
+    }
+
+    const [result] = await conn.query(
+      "DELETE FROM customers WHERE id = ? AND NOT EXISTS (SELECT 1 FROM orders WHERE customer_id = ?)",
+      [customerId, customerId],
+    );
+    const deleteResult = result as { affectedRows: number };
+
+    if (deleteResult.affectedRows > 0) {
+      return res.status(200).json({ message: "ลบลูกค้าออกจากระบบแล้ว" });
+    }
+
+    const [rows] = await conn.query("SELECT id FROM customers WHERE id = ?", [customerId]);
+    if ((rows as Array<{ id: number }>).length === 0) {
       return res.status(404).json({ error: "ไม่พบลูกค้ารายนี้" });
     }
-    
-    res.status(200).json({ message: "ลบลูกค้าออกจากระบบแล้ว" });
+
+    return res.status(409).json({
+      error: "ลบลูกค้ารายนี้ไม่ได้ เพราะมีประวัติออเดอร์อยู่ในระบบ",
+    });
   } catch (error) {
     console.error("Delete Error:", error);
     res.status(500).json({ error: "ลบข้อมูลไม่สำเร็จ" });
