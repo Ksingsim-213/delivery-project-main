@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 import { DEPOT } from '../models/delivery.model';
 
 export const createMap = (element: HTMLElement): L.Map => {
-  const map = L.map(element, { minZoom: 11, zoomSnap: 0.5 }).setView(DEPOT, 14);
+  const map = L.map(element, { zoomSnap: 0.5 }).setView(DEPOT, 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
