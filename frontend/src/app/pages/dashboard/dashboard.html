@@ -1,53 +1,65 @@
-<div class="mx-auto flex max-w-6xl flex-col gap-6 p-4 pb-12">
-  <header class="flex items-end justify-between border-b border-base-300 pb-4">
+<div class="mx-auto flex max-w-7xl flex-col gap-5 pb-8 sm:gap-6">
+  <header class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-5">
     <div>
-      <h2 class="text-2xl font-bold">ภาพรวมวันนี้</h2>
-      <p class="mt-1 text-sm opacity-60">สรุปออเดอร์และตำแหน่งลูกค้า</p>
+      <p class="text-xs font-bold uppercase tracking-wider text-blue-700">ภาพรวม</p>
+      <h1 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">ภาพรวมวันนี้</h1>
+      <p class="mt-1 text-sm text-slate-600">สถานะออเดอร์และตำแหน่งจัดส่งทั้งหมด</p>
     </div>
-    <button type="button" class="btn btn-primary" (click)="refresh()" [disabled]="loading">
+    <button type="button" class="btn btn-primary min-h-11" (click)="refresh()" [disabled]="loading">
       <span class="loading loading-spinner loading-sm" *ngIf="loading"></span>
       {{ loading ? 'กำลังโหลด...' : 'รีเฟรช' }}
     </button>
   </header>
 
-  <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
+  <div *ngIf="error" role="alert" class="alert alert-error alert-soft shadow-sm">{{ error }}</div>
 
-  <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
-    <div class="stat">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <div class="stat rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="stat-title">ออเดอร์</div>
-      <div class="stat-value">{{ orders.length }}</div>
+      <div class="stat-value text-3xl">{{ orders.length }}</div>
     </div>
-    <div class="stat">
+    <div class="stat rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="stat-title">ข้าวกล่องรวม</div>
-      <div class="stat-value">{{ totalBoxes }}</div>
+      <div class="stat-value text-3xl">{{ totalBoxes }}</div>
     </div>
-    <div class="stat">
+    <div class="stat rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="stat-title">ไรเดอร์ขั้นต่ำ</div>
-      <div class="stat-value text-primary">{{ minRiders }}</div>
+      <div class="stat-value text-3xl text-primary">{{ minRiders }}</div>
       <div class="stat-desc">คันละ {{ capacity }} กล่อง</div>
     </div>
-    <div class="stat">
+    <div class="stat col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-1">
       <div class="stat-title">ลูกค้าทั้งหมด</div>
-      <div class="stat-value">{{ customerCount }}</div>
+      <div class="stat-value text-3xl">{{ customerCount }}</div>
     </div>
   </div>
 
-  <div class="grid items-start gap-5 lg:grid-cols-[1fr_320px]">
-    <div>
-      <div #mapEl class="rounded-box relative z-0 h-[380px] border border-base-300 lg:h-[520px]"></div>
-      <p class="mt-2 text-sm opacity-60">ตัวเลขบนหมุดคือจำนวนกล่อง</p>
-    </div>
-    <div class="card card-border bg-base-100">
-      <div class="card-body gap-1">
-        <h3 class="card-title">ออเดอร์ล่าสุด</h3>
+  <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <section class="min-w-0">
+      <div class="mb-3">
+        <h2 class="text-lg font-bold">แผนที่จัดส่ง</h2>
+        <p class="text-sm text-slate-600">ตำแหน่งร้านและออเดอร์ที่รอจัดส่ง</p>
+      </div>
+      <div #mapEl class="relative z-0 h-[340px] rounded-2xl border border-slate-200 bg-slate-100 shadow-sm sm:h-[440px] xl:h-[560px]"></div>
+      <p class="mt-2 px-1 text-sm text-slate-600">ตัวเลขบนหมุดแสดงจำนวนกล่องของออเดอร์นั้น</p>
+    </section>
+    <section class="card card-border bg-base-100 shadow-sm">
+      <div class="card-body gap-2 p-4 sm:p-5">
+        <div>
+          <h2 class="card-title">ออเดอร์ล่าสุด</h2>
+          <p class="mt-1 text-sm text-slate-600">รายการที่เพิ่มเข้ามาล่าสุด</p>
+        </div>
         <ul class="list">
-          <li class="list-row items-center" *ngFor="let o of latest">
-            <div class="list-col-grow">{{ o.name }}</div>
+          <li class="list-row items-center gap-3" *ngFor="let o of latest">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-50 font-bold text-orange-800">{{ o.boxes }}</div>
+            <div class="list-col-grow min-w-0">
+              <div class="truncate font-semibold">{{ o.name }}</div>
+              <div class="text-xs text-slate-600">{{ o.phone }}</div>
+            </div>
             <span class="badge badge-primary badge-soft">{{ o.boxes }} กล่อง</span>
           </li>
         </ul>
-        <p class="py-4 text-center opacity-50" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
+        <p class="rounded-xl bg-slate-50 py-6 text-center text-sm text-slate-600" *ngIf="orders.length === 0">ยังไม่มีออเดอร์</p>
       </div>
-    </div>
+    </section>
   </div>
 </div>

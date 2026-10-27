@@ -1,44 +1,57 @@
-<main class="mx-auto flex min-h-[70vh] max-w-xl flex-col gap-4 p-2 pb-10 sm:p-4">
-  <a routerLink="/riders" class="btn btn-ghost min-h-11 self-start">← กลับหน้าแผนเส้นทาง</a>
+<main class="mx-auto flex min-h-[70vh] max-w-3xl flex-col gap-4 pb-10 sm:gap-5">
+  <a routerLink="/riders" class="btn btn-ghost min-h-11 self-start">← กลับไปหน้าไรเดอร์</a>
 
-  <header class="rounded-box bg-primary p-5 text-primary-content">
-    <p class="text-sm opacity-80">ใบงานจัดส่ง</p>
-    <h1 class="mt-1 text-2xl font-bold">ไรเดอร์ {{ driver?.driver_id }}</h1>
-    <p class="mt-2">วันนี้ต้องนำไปส่งทั้งหมด</p>
-    <p class="text-4xl font-extrabold">{{ driver?.total_boxes ?? 0 }} <span class="text-xl">กล่อง</span></p>
-    <p class="mt-1 text-sm opacity-80">{{ driver?.sequence?.length ?? 0 }} จุดส่ง · ประมาณ {{ driver?.total_distance_km ?? 0 }} กม.</p>
-    <p class="mt-1 font-semibold">เวลาเดินทางรวมประมาณ {{ formatDuration(driver?.total_duration_minutes ?? 0) }} (รวมขากลับร้าน)</p>
+  <header class="overflow-hidden rounded-2xl bg-primary p-5 text-primary-content shadow-sm sm:p-6">
+    <p class="text-sm font-semibold opacity-85">ใบงานจัดส่งวันนี้</p>
+    <h1 class="mt-1 text-2xl font-bold sm:text-3xl">ไรเดอร์ {{ driver?.driver_id }}</h1>
+    <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div class="rounded-xl bg-black/10 p-3">
+        <p class="text-sm opacity-85">จำนวนกล่อง</p>
+        <p class="mt-1 text-3xl font-extrabold">{{ driver?.total_boxes ?? 0 }}</p>
+      </div>
+      <div class="rounded-xl bg-black/10 p-3">
+        <p class="text-sm opacity-85">จุดส่ง</p>
+        <p class="mt-1 text-3xl font-extrabold">{{ driver?.sequence?.length ?? 0 }}</p>
+      </div>
+      <div class="col-span-2 rounded-xl bg-black/10 p-3 sm:col-span-1">
+        <p class="text-sm opacity-85">ระยะทางโดยประมาณ</p>
+        <p class="mt-1 text-2xl font-bold">{{ driver?.total_distance_km ?? 0 }} กม.</p>
+      </div>
+    </div>
+    <p class="mt-4 text-sm font-semibold">เวลาเดินทางรวมประมาณ {{ formatDuration(driver?.total_duration_minutes ?? 0) }} (รวมขากลับร้าน)</p>
   </header>
 
-  <div role="alert" class="alert alert-warning alert-soft">
+  <div role="alert" class="alert alert-warning alert-soft shadow-sm">
     หน้านี้ยังไม่มีระบบล็อกอิน ใครมีลิงก์ก็เปิดดูใบงานได้ กรุณาอย่าแชร์ลิงก์นี้ต่อ
   </div>
 
-  <div *ngIf="loading" class="flex justify-center py-10">
+  <div *ngIf="loading" class="flex justify-center rounded-2xl border border-slate-200 bg-white py-12">
     <span class="loading loading-spinner loading-lg text-primary"></span>
   </div>
   <div *ngIf="error" role="alert" class="alert alert-error alert-soft">{{ error }}</div>
 
   <ng-container *ngIf="driver && restaurant">
-    <section class="card card-border bg-base-100">
-      <div class="card-body gap-3 p-4">
-        <h2 class="card-title">ลำดับการจัดส่ง</h2>
-        <p class="text-sm opacity-60">เริ่มจากร้าน แล้วส่งตามลำดับด้านล่าง ก่อนขับกลับร้าน</p>
+    <section class="card card-border bg-base-100 shadow-sm">
+      <div class="card-body gap-3 p-4 sm:p-5">
+        <div>
+          <h2 class="card-title">ลำดับการจัดส่ง</h2>
+          <p class="mt-1 text-sm text-slate-600">เริ่มจากร้าน แล้วส่งตามลำดับด้านล่าง ก่อนขับกลับร้าน</p>
+        </div>
 
         <ol class="flex flex-col gap-3">
           <li
-            class="rounded-box border border-base-300 p-4"
+            class="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm"
             *ngFor="let stop of driver.sequence; let i = index"
           >
             <div class="flex items-start gap-3">
               <span class="badge badge-primary badge-lg shrink-0">{{ i + 1 }}</span>
               <div class="min-w-0 flex-1">
                 <h3 class="break-words font-bold">{{ stop.customer_name }}</h3>
-                <a class="link link-hover text-sm" [href]="'tel:' + stop.customer_phone">{{ stop.customer_phone }}</a>
-                <p class="mt-1 text-sm">{{ stop.quantity }} กล่อง</p>
-                <p class="mt-1 text-sm text-primary">จากจุดก่อนหน้าใช้เวลาประมาณ {{ formatDuration(stop.duration_from_previous_minutes) }}</p>
+                <a class="link link-hover min-h-11 py-2 text-sm" [href]="'tel:' + stop.customer_phone">{{ stop.customer_phone }}</a>
+                <p class="mt-1 text-sm font-medium">{{ stop.quantity }} กล่อง</p>
+                <p class="mt-1 text-sm font-medium text-primary">จากจุดก่อนหน้าใช้เวลาประมาณ {{ formatDuration(stop.duration_from_previous_minutes) }}</p>
                 <a
-                  class="btn btn-primary mt-3 min-h-11 w-full"
+                  class="btn btn-primary mt-3 min-h-12 w-full"
                   [href]="directionsUrl(previousStop(i), stop)"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -50,15 +63,15 @@
           </li>
         </ol>
 
-        <div class="rounded-box border border-dashed border-base-300 p-4">
+        <div class="rounded-2xl border border-dashed border-base-300 bg-base-200/50 p-4">
           <h3 class="font-bold">จุดสุดท้าย: กลับร้าน</h3>
-          <p class="text-sm opacity-60">{{ restaurant.name }}</p>
-          <p *ngIf="driver.sequence.length > 0" class="text-sm text-primary">
+          <p class="text-sm text-slate-600">{{ restaurant.name }}</p>
+          <p *ngIf="driver.sequence.length > 0" class="mt-1 text-sm font-medium text-primary">
             ขากลับใช้เวลาประมาณ {{ formatDuration(driver.return_duration_minutes) }}
           </p>
           <a
             *ngIf="driver.sequence.length > 0"
-            class="btn btn-outline mt-3 min-h-11 w-full"
+            class="btn btn-outline mt-3 min-h-12 w-full"
             [href]="directionsUrl(driver.sequence[driver.sequence.length - 1]!, restaurant)"
             target="_blank"
             rel="noopener noreferrer"
@@ -67,7 +80,7 @@
           </a>
           <a
             *ngIf="driver.sequence.length === 0"
-            class="btn btn-outline mt-3 min-h-11 w-full"
+            class="btn btn-outline mt-3 min-h-12 w-full"
             [href]="directionsUrl(restaurant, restaurant)"
             target="_blank"
             rel="noopener noreferrer"

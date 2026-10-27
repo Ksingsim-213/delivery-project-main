@@ -1,46 +1,59 @@
 <div class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="border-b border-slate-200 bg-white">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-      <a routerLink="/dashboard" class="text-lg font-bold tracking-tight text-indigo-700">
-        Delivery Manager
+  <header class="sticky top-0 z-[1000] border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <a
+        routerLink="/dashboard"
+        class="flex min-h-11 items-center gap-3 rounded-lg text-slate-900 outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
+      >
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-sm font-bold tracking-wide text-white">DM</span>
+        <span>
+          <span class="block text-base font-bold tracking-tight">Delivery Manager</span>
+          <span class="hidden text-xs text-slate-500 sm:block">ระบบจัดการงานจัดส่ง</span>
+        </span>
       </a>
-      <span class="text-sm text-slate-500">ระบบจัดการงานจัดส่ง</span>
+      <span class="hidden rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800 sm:inline-flex">
+        จัดการงานประจำวัน
+      </span>
     </div>
   </header>
 
-  <div class="mx-auto grid max-w-7xl gap-6 px-6 py-6 md:grid-cols-[220px_1fr]">
-    <nav aria-label="เมนูหลัก" class="flex gap-2 overflow-x-auto md:flex-col">
+  <div class="mx-auto grid max-w-[1600px] gap-4 px-3 py-4 sm:px-6 sm:py-6 md:grid-cols-[210px_minmax(0,1fr)] lg:gap-6">
+    <nav aria-label="เมนูหลัก" class="flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm md:sticky md:top-24 md:h-fit md:flex-col">
       <a
         routerLink="/dashboard"
-        routerLinkActive="bg-indigo-50 text-indigo-700"
-        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+        routerLinkActive="bg-blue-50 text-blue-800"
+        ariaCurrentWhenActive="page"
+        class="flex min-h-11 shrink-0 items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 md:w-full"
       >
         ภาพรวม
       </a>
       <a
         routerLink="/customers"
-        routerLinkActive="bg-indigo-50 text-indigo-700"
-        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+        routerLinkActive="bg-blue-50 text-blue-800"
+        ariaCurrentWhenActive="page"
+        class="flex min-h-11 shrink-0 items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 md:w-full"
       >
         ลูกค้า
       </a>
       <a
         routerLink="/orders"
-        routerLinkActive="bg-indigo-50 text-indigo-700"
-        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+        routerLinkActive="bg-blue-50 text-blue-800"
+        ariaCurrentWhenActive="page"
+        class="flex min-h-11 shrink-0 items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 md:w-full"
       >
         ออเดอร์
       </a>
       <a
         routerLink="/riders"
-        routerLinkActive="bg-indigo-50 text-indigo-700"
-        class="shrink-0 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100"
+        routerLinkActive="bg-blue-50 text-blue-800"
+        ariaCurrentWhenActive="page"
+        class="flex min-h-11 shrink-0 items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 md:w-full"
       >
         ไรเดอร์
       </a>
     </nav>
 
-    <main class="min-w-0 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <main class="min-w-0">
       <router-outlet />
     </main>
   </div>
