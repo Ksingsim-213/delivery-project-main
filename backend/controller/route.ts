@@ -72,6 +72,7 @@ type DriverRoute = {
   total_distance_km: number;
   total_duration_minutes: number;
   return_duration_minutes: number;
+  geometry: Array<[number, number]>;
   sequence: Array<{
     order_id: number;
     customer_id: number;
@@ -93,6 +94,9 @@ type OsrmRouteResponse = {
     duration: number;
     distance: number;
     legs: Array<{ duration: number; distance: number }>;
+    geometry?: {
+      coordinates?: Array<[number, number]>;
+    };
   }>;
 };
 
@@ -117,9 +121,12 @@ const estimateDriverTimes = async (driver: DriverRoute): Promise<DriverRoute> =>
     .join(";");
   let response: Response;
   try {
-    response = await fetch(`${OSRM_ROUTE_URL}/${coordinates}?overview=false&steps=false`, {
-      signal: AbortSignal.timeout(10_000),
-    });
+    response = await fetch(
+      `${OSRM_ROUTE_URL}/${coordinates}?overview=full&geometries=geojson&steps=false`,
+      {
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
   } catch (error) {
     throw new RouteEstimateError("OSRM request could not be completed", { cause: error });
   }
@@ -134,10 +141,20 @@ const estimateDriverTimes = async (driver: DriverRoute): Promise<DriverRoute> =>
     throw new RouteEstimateError("OSRM returned an invalid response", { cause: error });
   }
   const route = result.routes?.[0];
+  const geometry = route?.geometry?.coordinates;
   if (
     result.code !== "Ok" ||
     !route ||
+    !Array.isArray(route.legs) ||
     route.legs.length !== driver.sequence.length + 1 ||
+    !Array.isArray(geometry) ||
+    geometry.length < 2 ||
+    geometry.some(
+      (coordinate) =>
+        !Array.isArray(coordinate) ||
+        coordinate.length !== 2 ||
+        !coordinate.every(Number.isFinite),
+    ) ||
     !Number.isFinite(route.duration) ||
     route.duration < 0 ||
     !Number.isFinite(route.distance) ||
@@ -156,6 +173,7 @@ const estimateDriverTimes = async (driver: DriverRoute): Promise<DriverRoute> =>
   const legMinutes = route.legs.map((leg) => Math.ceil(leg.duration / 60));
   return {
     ...driver,
+    geometry: geometry.map(([lng, lat]): [number, number] => [lat, lng]),
     total_distance_km: Number((route.distance / 1000).toFixed(2)),
     sequence: driver.sequence.map((stop, index) => ({
       ...stop,
@@ -325,6 +343,7 @@ const buildDriverAssignments = (orders: StopRow[], driverCountInput: number) => 
         total_distance_km: route.totalDistanceKm,
         total_duration_minutes: 0,
         return_duration_minutes: 0,
+        geometry: [],
         sequence: route.sequence,
         restaurant: RESTAURANT,
       } satisfies DriverRoute;
