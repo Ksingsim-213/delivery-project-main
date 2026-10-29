@@ -185,8 +185,8 @@ export class Orders implements AfterViewInit, OnDestroy {
 
   saveEdit(): void {
     if (this.editingOrderId === null) return;
-    if (!Number.isSafeInteger(this.editBoxes) || this.editBoxes < 1) {
-      this.editError = 'จำนวนกล่องต้องเป็นจำนวนเต็มบวก';
+    if (!Number.isSafeInteger(this.editBoxes) || this.editBoxes < 1 || this.editBoxes > 3) {
+      this.editError = 'จำนวนกล่องต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 3 กล่อง';
       return;
     }
 
@@ -207,7 +207,10 @@ export class Orders implements AfterViewInit, OnDestroy {
     const coordinates = parseCoordinates(this.pos);
     if (!this.name.trim()) { this.error = 'กรอกชื่อลูกค้า'; return; }
     if (!coordinates) { this.error = 'พิกัดไม่ถูกต้อง ใช้รูปแบบละติจูด, ลองจิจูด เช่น 13.7563, 100.5018'; return; }
-    if (!Number.isSafeInteger(this.boxes) || this.boxes < 1) { this.error = 'จำนวนกล่องต้องเป็นจำนวนเต็มบวก'; return; }
+    if (!Number.isSafeInteger(this.boxes) || this.boxes < 1 || this.boxes > 3) {
+      this.error = 'จำนวนกล่องต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 3 กล่อง';
+      return;
+    }
     this.error = '';
 
     this.data.addOrder({

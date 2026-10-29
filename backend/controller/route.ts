@@ -374,7 +374,11 @@ const getRoutePlan = async (requestedDrivers: number) => {
     restaurant: RESTAURANT,
     total_orders: orders.length,
     total_boxes: estimatedDriverPlans.reduce((sum, item) => sum + item.total_boxes, 0),
-    total_distance_km: estimatedDriverPlans.reduce((sum, item) => sum + item.total_distance_km, 0),
+    total_distance_km: Number(
+      estimatedDriverPlans
+        .reduce((sum, item) => sum + item.total_distance_km, 0)
+        .toFixed(2),
+    ),
     total_duration_minutes: estimatedDriverPlans.reduce(
       (sum, item) => sum + item.total_duration_minutes,
       0,
