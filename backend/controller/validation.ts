@@ -8,7 +8,7 @@ export const isPositiveInteger = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value > 0;
 
 export const isValidOrderQuantity = (value: unknown): value is number =>
-  typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+  typeof value === "number" && Number.isSafeInteger(value) && value > 0 && value <= 3;
 
 export const isLatitude = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= -90 && value <= 90;

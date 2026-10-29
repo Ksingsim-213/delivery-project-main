@@ -38,7 +38,7 @@
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">จำนวนกล่อง</legend>
-        <input id="boxes" class="input input-bordered min-h-11 w-full" type="number" min="1" step="1" [(ngModel)]="boxes" name="boxes" />
+        <input id="boxes" class="input input-bordered min-h-11 w-full" type="number" min="1" max="3" step="1" [(ngModel)]="boxes" name="boxes" />
       </fieldset>
 
       <div *ngIf="error" role="alert" class="alert alert-soft mt-2 text-sm" [class.alert-error]="!picking" [class.alert-info]="picking">{{ error }}</div>
@@ -69,6 +69,7 @@
                   class="input input-bordered min-h-11 w-16"
                   type="number"
                   min="1"
+                  max="3"
                   step="1"
                   [(ngModel)]="editBoxes"
                   [name]="'editBoxes-' + o.id"

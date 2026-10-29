@@ -104,12 +104,10 @@ export class Riders implements AfterViewInit, OnDestroy {
       >();
 
       for (const driver of this.visibleDrivers) {
-        const routePoints: L.LatLngTuple[] = [depot];
         const routeStyle = this.routeStyleForDriver(driver.driver_id);
 
         driver.sequence.forEach((stop, index) => {
           const position: L.LatLngTuple = [stop.lat, stop.lng];
-          routePoints.push(position);
           points.push(position);
           const key = `${stop.lat},${stop.lng}`;
           const groupedStops = stopsByPosition.get(key) ?? [];
@@ -118,8 +116,8 @@ export class Riders implements AfterViewInit, OnDestroy {
         });
 
         if (driver.sequence.length > 0) {
-          routePoints.push(depot);
-          L.polyline(routePoints, {
+          points.push(...driver.geometry);
+          L.polyline(driver.geometry, {
             color: routeStyle.color,
             dashArray: routeStyle.dashArray,
             weight: 5,

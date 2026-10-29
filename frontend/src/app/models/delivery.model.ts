@@ -35,6 +35,7 @@ export interface DriverRoute {
   total_distance_km: number;
   total_duration_minutes: number;
   return_duration_minutes: number;
+  geometry: Array<[number, number]>;
   sequence: RouteStop[];
   restaurant: {
     lat: number;
